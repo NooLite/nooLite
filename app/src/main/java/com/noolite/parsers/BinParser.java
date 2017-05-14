@@ -10,17 +10,15 @@ import android.content.Context;
 import android.util.Log;
 
 import com.noolite.channels.ChannelElement;
-import com.noolite.dbchannels.DBManagerChannel;
-import com.noolite.dbgroup.DBManagerGroup;
-import com.noolite.dbtimer.DBManagerTimer;
+import com.noolite.db.ds.ChannelsDataSource;
+import com.noolite.db.ds.GroupDataSource;
+import com.noolite.db.ds.TimerDataSource;
 import com.noolite.groups.GroupElement;
 import com.noolite.timers.TimerElement;
 
 public class BinParser {
 
     private byte[] data;  //информация для парсинга
-	private Context context;  //Context приложения, необходимый для подключения к базам данных
-
 	//значения сдвигов, числа считываемых элементов в соответствии с бинарным файлом
 	private static final int START_OFFSET = 6;
 	private static final int OFFSET = 24;
@@ -37,10 +35,21 @@ public class BinParser {
 	private static final int FIRST_SIX_BYTES = 0x3F;
 	private static final int FULL_BYTE = 0xFF;
 
+	private ChannelsDataSource channelsDS;
+    private GroupDataSource groupDS;
+    private TimerDataSource timerDS;
 
 	public BinParser(byte[] data, Context context) {
 		this.data = data;
-		this.context = context;
+
+        channelsDS = new ChannelsDataSource(context);
+        channelsDS.open();
+
+        groupDS = new GroupDataSource(context);
+        groupDS.open();
+
+        timerDS = new TimerDataSource(context);
+        timerDS.open();
 	}
 
 	public byte[] getData() {
@@ -54,8 +63,8 @@ public class BinParser {
 	public void parceData() throws UnsupportedEncodingException {
 
 		int currentPosition = 0;
-
-		this.connectToGroupDB();  //подключение к БД групп
+        channelsDS.deleteAll();
+        groupDS.deleteAll();
 
 		//считывание информации о группах
 		for (int i = 0; i < NUMBER_OF_GROUPS; i++) {
@@ -85,13 +94,12 @@ public class BinParser {
 			//добавление полученной группы в БД групп
 			GroupElement newElement = new GroupElement(i, name, channels,
 					sensors, visibility);
-			DBManagerGroup.add(newElement);
+            groupDS.add(newElement);
 			//изменение сурсора текущей позиции
 			currentPosition += GROUP_OFFSET;
 		}
 
-		//подключение к БД каналов
-		this.connectToChannelDB();
+
 		//парсинг информации о каналах
 		for (int i = 0; i < NUMBER_OF_CHANNELS; i++) {
 			int type = 0;
@@ -103,12 +111,11 @@ public class BinParser {
 			//создание нового объекта канала и добавление его в БД
 			ChannelElement newElement = new ChannelElement(i+1, name, type,
 					0, 0);
-			DBManagerChannel.add(newElement);
+            channelsDS.add(newElement);
 			currentPosition += CHANNEL_OFFSET;
 		}
 
-		//подключение к БД таймеров
-        this.connectToTimerDB();
+
 		//сдвиг на позицию файла, где начинается информация о таймерах
         currentPosition = 1313;
 
@@ -140,29 +147,10 @@ public class BinParser {
 
 			//создание и добавление в БД нового объекта таймера
             TimerElement newTimer = new TimerElement(id, isOn, singleActivation, days, hour, minute, command);
-            DBManagerTimer.add(newTimer);
+            timerDS.add(newTimer);
             currentPosition +=TIMER_OFFSET;
         }
 	}
-
-	//подключения к базам данных
-	private void connectToChannelDB() {
-		DBManagerChannel dbManagerChannel;
-		dbManagerChannel = DBManagerChannel.getInstance(context);
-		dbManagerChannel.connect(context);
-	}
-
-	private void connectToGroupDB() {
-		DBManagerGroup dbManagerGroup;
-		dbManagerGroup = DBManagerGroup.getInstance(context);
-		dbManagerGroup.connect(context);
-	}
-
-    private void connectToTimerDB(){
-        DBManagerTimer dbManagerTimer;
-        dbManagerTimer = DBManagerTimer.getInstance(context);
-        dbManagerTimer.connect(context);
-    }
 
 	//получение имени из массива байт
 	private String getName(int currentPosition) throws UnsupportedEncodingException {

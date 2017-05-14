@@ -1,6 +1,10 @@
 package com.noolite;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.UUID;
@@ -172,7 +176,7 @@ public class MainActivity extends Activity implements OnItemClickListener,
             }
         });
 */
-/*
+
 		//скачивание xml
 		DownloadXMLTask dt = new DownloadXMLTask(new DownloadInterface() {
 			@Override
@@ -181,17 +185,24 @@ public class MainActivity extends Activity implements OnItemClickListener,
 			}
 		});
 
-		dt.execute("http://" + SettingsValues.getIP()
-				+ "/sens.xml");
+		dt.execute("http://" + SettingsValues.getIP() + "/sens.xml");
 		
-		InputStream in;
+		InputStream in = null;
 		try {
 			in = new FileInputStream(new File(Environment.getExternalStorageDirectory().getPath()+"/nooLite/sens.xml"));
 			XMLParser.parse(getApplicationContext(), in);
 		} catch (FileNotFoundException e1) {
 			e1.printStackTrace();
+		} finally {
+			if (in != null) {
+				try {
+					in.close();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
 		}
-*/
+
 
 	}
 

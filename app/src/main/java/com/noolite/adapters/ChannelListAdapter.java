@@ -94,7 +94,7 @@ public class ChannelListAdapter extends BaseAdapter implements
 		customView.findViewById(R.id.LEDChannel).setVisibility(View.GONE);
 		customView.findViewById(R.id.scenarioChannel).setVisibility(View.GONE);
 		customView.findViewById(R.id.openCloseChannel).setVisibility(View.GONE);
-//		customView.findViewById(R.id.sensorChannel).setVisibility(View.INVISIBLE);
+		customView.findViewById(R.id.sensorChannel).setVisibility(View.GONE);
 
 
 		//инициализация элемента списка в соответствии с типом канала
@@ -241,9 +241,7 @@ public class ChannelListAdapter extends BaseAdapter implements
             break;
 
 		case 44:
-/*
 			//датчики
-
 			//список текущих значений показаний датчиков
 			ArrayList<String> values = SettingsValues.sensorValues;
 
@@ -286,24 +284,26 @@ public class ChannelListAdapter extends BaseAdapter implements
 			TextView warning = (TextView) customView.findViewById(R.id.warning);
 
 			//в случае отсутствия ошибок строка-пояснение убирается с элемента списка
-			if(errorType.equals("0"))
+			if (errorType.equals("0")) {
 				warning.setVisibility(View.GONE);
+			}
 
 			if(errorType.equals("1")) {
 				warning.setVisibility(View.VISIBLE);
 				warning.setText("Датчик не привязан");
 			}
 
-			if(errorType.equals("2")) {
+			if (errorType.equals("2")) {
 				warning.setVisibility(View.VISIBLE);
 				warning.setText("Нет сигнала с датчика");
 			}
 
-			if(errorType.equals("3")){
+			if (errorType.equals("3")) {
 				warning.setVisibility(View.VISIBLE);
-				warning.setText("�������� ������� �������");
+//				warning.setText("�������� ������� �������");
+				warning.setText("Внутренняя ошибка (3)");
 			}
-*/
+
 			break;
 		}
 
@@ -395,10 +395,10 @@ public class ChannelListAdapter extends BaseAdapter implements
 		});
 		String url = new String();
 		if (isChecked) {
-			url = "http://192.168.0.168/api.htm?ch=" + (current.getId() - 1)
+			url = "http://" + SettingsValues.getIP() + "/api.htm?ch=" + (current.getId() - 1)
 					+ "&cmd=2";
 		} else {
-			url = "http://192.168.0.168/api.htm?ch=" + (current.getId() - 1)
+			url = "http://" + SettingsValues.getIP() + "/api.htm?ch=" + (current.getId() - 1)
 					+ "&cmd=0";
 		}
 		//отправка команды на шлюз

@@ -45,6 +45,7 @@ public class ChannelViewActivity extends Activity implements OnClickListener {
 	private static Context context;
     //Intent, который вызывал открытие этого Activity и в котором передавались данные
 	private static Intent intent;
+	private UpdateReceiver updateReceiver;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -57,7 +58,7 @@ public class ChannelViewActivity extends Activity implements OnClickListener {
 		//получение передаваемых в Intent данных
 		ArrayList<Integer> channels = intent
 				.getIntegerArrayListExtra("channels");
-//		ArrayList<Integer> sensors = intent.getIntegerArrayListExtra("sensors");
+		ArrayList<Integer> sensors = intent.getIntegerArrayListExtra("sensors");
 		groupTitle = intent.getStringExtra("title");
 
 		//подключение к БД каналов
@@ -82,17 +83,17 @@ public class ChannelViewActivity extends Activity implements OnClickListener {
 				channelsToView.add(allChannels.get(i - 1));
 			}
 		}
-/*
+
 		//добавление каналов, которые надо отображать
 		int position = 1;
 		for (Integer i : sensors) {
 			if (i != 0) {
-				channelsToView.add(new ChannelElement(position-1, "1" + position,
-						44, 0, 0));
+				channelsToView.add(
+				    new ChannelElement(position-1, "сенсор N" + position, 44, 0, 0));
 			}
 			position++;
 		}
-*/
+
 		//инициализация списка каналов и его адаптера
 		channelListView = (ListView) findViewById(R.id.lvChannels);
 		Log.d("channelsToView", channelsToView.toString());
@@ -119,7 +120,8 @@ public class ChannelViewActivity extends Activity implements OnClickListener {
 
 
 // Error: Activity com.noolite.ChannelViewActivity has leaked IntentReceiver receiver.UpdateReceiver@41c80e08 that was originally registered here. Are you missing a call to unregisterReceiver()?
-//		this.registerReceiver(new UpdateReceiver(), new IntentFilter("update"));
+		updateReceiver = new UpdateReceiver();
+		this.registerReceiver(updateReceiver, new IntentFilter("update"));
 	}
 
 	//возвращение на главное Activity
@@ -152,7 +154,7 @@ public class ChannelViewActivity extends Activity implements OnClickListener {
 		ArrayList<Integer> channels = intent
 				.getIntegerArrayListExtra("channels");
 		
-//		ArrayList<Integer> sensors = intent.getIntegerArrayListExtra("sensors");
+		ArrayList<Integer> sensors = intent.getIntegerArrayListExtra("sensors");
 		groupTitle = intent.getStringExtra("title");
 
 		DBManagerChannel dbManager = DBManagerChannel
@@ -174,20 +176,29 @@ public class ChannelViewActivity extends Activity implements OnClickListener {
 			}
 		}
 		
-//		int position = 1;
-//		for (Integer i : sensors) {
-//			if (i != 0) {
+		int position = 1;
+		for (Integer i : sensors) {
+			if (i != 0) {
 //				channelsToView.add(new ChannelElement(position-1, "������ �" + position,
-//						44, 0, 0));
-//			}
-//			position++;
-//		}
+				channelsToView.add(new ChannelElement(position - 1, "сенсор N" + position,
+						44, 0, 0));
+			}
+			position++;
+		}
 
 		customAdapter = new ChannelListAdapter(context,
 				channelsToView);
 		channelListView.setAdapter(customAdapter);
 	}
-	
-	
+
+	@Override
+	protected void onDestroy() {
+		super.onDestroy();
+
+		if (updateReceiver != null) {
+			this.unregisterReceiver(updateReceiver);
+		}
+
+	}
 }
 

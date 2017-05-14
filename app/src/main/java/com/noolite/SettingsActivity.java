@@ -44,7 +44,7 @@ public class SettingsActivity extends Activity implements OnClickListener {
 	private final String FILEPATH = Environment.getExternalStorageDirectory()
 			.getPath() + "/nooLite/noolite_settings.bin";
 	private CheckBox playSound, needAuthentification;
-	
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -213,13 +213,13 @@ public class SettingsActivity extends Activity implements OnClickListener {
 					ex.printStackTrace();
 				}
 
-				DBManagerChannel dbChannel = DBManagerChannel
-						.getInstance(getApplicationContext());
-				dbChannel.deleteAll();
-
-				DBManagerGroup dbGroup = DBManagerGroup
-						.getInstance(getApplicationContext());
-				dbGroup.deleteAll();
+//				DBManagerChannel dbChannel = DBManagerChannel
+//						.getInstance(getApplicationContext());
+//				dbChannel.deleteAll();
+//
+//				DBManagerGroup dbGroup = DBManagerGroup
+//						.getInstance(getApplicationContext());
+//				dbGroup.deleteAll();
 
 				BinParser binParse = new BinParser(fileData, this);
 				try {

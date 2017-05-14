@@ -326,8 +326,68 @@
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>
+<!--
+    <LinearLayout
+        android:id="@+id/dimmedChannel2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="15dp"
+        android:background="@drawable/item_background"
+        android:orientation="vertical"
+        android:padding="10dp" >
 
- <!--
+        <TextView
+            android:id="@+id/dimmedChannelTitle2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Large Text"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:textColor="#555555" />
+
+        <LinearLayout
+            android:id="@+id/dimmedChannelLayout2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" >
+
+            <Button
+                android:id="@+id/setZero"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_margin="10dp"
+                android:layout_marginTop="21dp"
+                android:background="@drawable/btn_background"
+                android:gravity="center"
+
+                android:text=" Z "
+                android:textColor="#ffffff"
+                android:textStyle="bold" />
+
+            <RatingBar
+                android:id="@+id/dimmedChannelSeekBar2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="3dp"
+                android:layout_weight="1"
+                android:thumb="@drawable/ic_seekbar_thumb" />
+
+            <Button
+                android:id="@+id/setMax"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_margin="10dp"
+                android:layout_marginTop="21dp"
+                android:background="@drawable/btn_background"
+                android:gravity="center"
+
+                android:text=" M "
+                android:textColor="#ffffff"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </LinearLayout>
+ -->
+ <!-- -->
     <LinearLayout
         android:id="@+id/sensorChannel"
         android:layout_width="match_parent"
@@ -378,5 +438,5 @@
             android:textColor="#ff0000"
             android:visibility="gone" />
     </LinearLayout>
--->
+
 </LinearLayout>
