@@ -212,14 +212,14 @@ public class SettingsActivity extends Activity implements OnClickListener {
 				} catch (Exception ex) {
 					ex.printStackTrace();
 				}
+// urix
+				DBManagerChannel dbChannel = DBManagerChannel
+						.getInstance(getApplicationContext());
+				dbChannel.deleteAll();
 
-//				DBManagerChannel dbChannel = DBManagerChannel
-//						.getInstance(getApplicationContext());
-//				dbChannel.deleteAll();
-//
-//				DBManagerGroup dbGroup = DBManagerGroup
-//						.getInstance(getApplicationContext());
-//				dbGroup.deleteAll();
+				DBManagerGroup dbGroup = DBManagerGroup
+						.getInstance(getApplicationContext());
+				dbGroup.deleteAll();
 
 				BinParser binParse = new BinParser(fileData, this);
 				try {

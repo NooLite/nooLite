@@ -89,7 +89,7 @@ public class ChannelViewActivity extends Activity implements OnClickListener {
 		for (Integer i : sensors) {
 			if (i != 0) {
 				channelsToView.add(
-				    new ChannelElement(position-1, "сенсор N" + position, 44, 0, 0));
+				    new ChannelElement(position-1, "Датчик N" + position, 44, 0, 0));
 			}
 			position++;
 		}
