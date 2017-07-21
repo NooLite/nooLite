@@ -15,6 +15,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Environment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -25,11 +26,11 @@ import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.noolite.R;
 import com.noolite.asynctask.DownloadInterface;
 import com.noolite.asynctask.DownloadTask;
-import com.noolite.dbchannels.DBManagerChannel;
-import com.noolite.dbgroup.DBManagerGroup;
+import com.noolite.db.ds.ChannelsDataSource;
+import com.noolite.db.ds.DataSourceManager;
+import com.noolite.db.ds.GroupDataSource;
 import com.noolite.parsers.BinParser;
 import com.noolite.settings.SettingsValues;
 
@@ -40,7 +41,7 @@ public class SettingsActivity extends Activity implements OnClickListener {
 	private Button getData, saveData;
 	private ImageButton back;
 	private EditText ipField, usernameField, passwordField;
-	private View view;
+
 	private final String FILEPATH = Environment.getExternalStorageDirectory()
 			.getPath() + "/nooLite/noolite_settings.bin";
 	private CheckBox playSound, needAuthentification;
@@ -52,7 +53,7 @@ public class SettingsActivity extends Activity implements OnClickListener {
 
 		LayoutInflater vi = (LayoutInflater) getApplicationContext()
 				.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-		view = vi.inflate(R.layout.action_bar_settings_activity, null);
+        View view = vi.inflate(R.layout.action_bar_settings_activity, null);
 
 		//инициализация элементов UI согласно текущим настройкам приложения
 		playSound = (CheckBox) findViewById(R.id.playSound);
@@ -163,9 +164,7 @@ public class SettingsActivity extends Activity implements OnClickListener {
 	public void onClick(View v) {
 		switch (v.getId()) {
 		case R.id.getData:
-
 			//запись данных и обновление информации со шлюза
-
 			SettingsValues.setIP(ipField.getText().toString());
 			SettingsValues.setUsername(usernameField.getText().toString());
 			SettingsValues.setPassword(passwordField.getText().toString());
@@ -180,67 +179,9 @@ public class SettingsActivity extends Activity implements OnClickListener {
 			edit.commit();
 			edit.putBoolean("auth", needAuthentification.isChecked());
 			edit.commit();
-
-			//скачивание информации со шлюза
-			final DownloadTask dt = new DownloadTask(new DownloadInterface() {
-
-				@Override
-				public void callBackDownload() {
-
-				}
-			});
-
-			int errorCode = 1;
-			try {
-				errorCode = dt.execute(
-						"http://" + SettingsValues.getIP()
-								+ "/noolite_settings.bin").get();
-			} catch (Exception ex) {
-
-			}
-
-			//парсинг бинарного файла в случае успешного завершения скачивания
-			if (errorCode == 0) {
-				File file = new File(FILEPATH);
-				byte[] fileData = new byte[(int) file.length()];
-
-				try {
-					DataInputStream dis = new DataInputStream(
-							new FileInputStream(file));
-					dis.readFully(fileData);
-					dis.close();
-				} catch (Exception ex) {
-					ex.printStackTrace();
-				}
-// urix
-				DBManagerChannel dbChannel = DBManagerChannel
-						.getInstance(getApplicationContext());
-				dbChannel.deleteAll();
-
-				DBManagerGroup dbGroup = DBManagerGroup
-						.getInstance(getApplicationContext());
-				dbGroup.deleteAll();
-
-				BinParser binParse = new BinParser(fileData, this);
-				try {
-					binParse.parceData();
-
-				} catch (UnsupportedEncodingException e) {
-					e.printStackTrace();
-				}
-
-				makeDialog("Данные успешно загружены");
-				SettingsValues.setDemo(false);
-				
-				edit = MainActivity.getSharedPref().edit();
-				edit.putBoolean("demo", false);
-				edit.commit();
-			} else {
-				//отображение информации об ошибке в случае отсутствия соединения
-				makeDialog("Ошибка подключения к адресу, проверьте соединение с Wi-Fi или IP адрес");
-			}
+            DownloadTask dt = new DownloadTask(this);
+            dt.execute(UrlUtils.getSettingsUrl());
 			break;
-
 
 		//возврат на Activity с меню настроек по нажатии на кнопку "назад"
 		case R.id.backBtnSettings:
@@ -278,18 +219,13 @@ public class SettingsActivity extends Activity implements OnClickListener {
 	//отображение диалогового окна с текстом, передающемся в параметре str
 	public void makeDialog(String str) {
 		final AlertDialog.Builder adb = new AlertDialog.Builder(this);
-
-		view = (LinearLayout) getLayoutInflater()
-				.inflate(R.layout.dialog, null);
-
+        View view = getLayoutInflater().inflate(R.layout.dialog, null);
 		adb.setView(view);
-
 		TextView msg = (TextView) view.findViewById(R.id.message);
 		msg.setText(str);
 		Button btnOk = (Button) view.findViewById(R.id.okDialogButton);
 		final Dialog alertDialog = adb.create();
-		alertDialog.getWindow().setBackgroundDrawableResource(
-				android.R.color.transparent);
+		alertDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
 
 		btnOk.setOnClickListener(new OnClickListener() {
 			@Override
@@ -297,7 +233,6 @@ public class SettingsActivity extends Activity implements OnClickListener {
 				alertDialog.dismiss();
 			}
 		});
-
 		alertDialog.show();
 	}
 

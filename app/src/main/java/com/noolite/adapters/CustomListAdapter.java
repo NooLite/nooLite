@@ -19,29 +19,28 @@ import com.noolite.groups.GroupElement;
 public class CustomListAdapter extends BaseAdapter {
 
 	private Context context;
-	private ArrayList<GroupElement> list; //список отображаемых групп
+	private ArrayList<GroupElement> groups; //список отображаемых групп
 	private LayoutInflater inflater;
 
 	public CustomListAdapter(Context context, ArrayList<GroupElement> groups) {
 		this.context = context;
-		this.list = groups;
-		inflater = (LayoutInflater) context
-				.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+		this.groups = groups;
+		inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 	}
 
 	@Override
 	public int getCount() {
-		return this.list.size();
+		return groups.size();
 	}
 
 	@Override
 	public Object getItem(int position) {
-		return this.list.get(position);
+		return groups.get(position);
 	}
 
 	@Override
 	public long getItemId(int position) {
-		return position;
+		return groups.get(position).getId();
 	}
 
 	@Override
@@ -53,12 +52,9 @@ public class CustomListAdapter extends BaseAdapter {
 		} else {
 			customView = convertView;
 		}
-
 		//отображение названия элемента
 		TextView title = (TextView) customView.findViewById(R.id.groupTitle);
-		
-		GroupElement newItem = this.list.get(position);
-		title.setText(newItem.getName());
+		title.setText(groups.get(position).getName());
 
 		return customView;
 	}

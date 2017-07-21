@@ -1,6 +1,7 @@
 package com.noolite.adapters;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
@@ -9,7 +10,6 @@ import android.graphics.PorterDuff.Mode;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -25,11 +25,16 @@ import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 
+import com.noolite.NooLiteDefs;
 import com.noolite.R;
+import com.noolite.UrlUtils;
 import com.noolite.asynctask.RequestInterface;
 import com.noolite.asynctask.RequestTask;
 import com.noolite.channels.ChannelElement;
-import com.noolite.dbchannels.DBManagerChannel;
+import com.noolite.db.ds.ChannelsDataSource;
+import com.noolite.db.ds.DataSourceManager;
+import com.noolite.groups.SensorData;
+import com.noolite.groups.SensorStatus;
 import com.noolite.settings.SettingsValues;
 
 //адаптер для конфигурации UI списка каналов
@@ -43,7 +48,7 @@ public class ChannelListAdapter extends BaseAdapter implements
 	private static boolean[] checked;
 	private SeekBar seekBar;
 	private LinearLayout layout;
-	private TextView title, sensorTitle, sensorTemperature, sensorHumidity;
+	private TextView title;
 
 	private Button btnStartScenario, btnSave,
 			btnLEDStartScenario, btnLEDSave, btnLEDChangeColor;
@@ -55,6 +60,7 @@ public class ChannelListAdapter extends BaseAdapter implements
 		inflater = (LayoutInflater) context
 				.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		checked = new boolean[list.size()];
+
 	}
 
 	@Override
@@ -124,27 +130,23 @@ public class ChannelListAdapter extends BaseAdapter implements
 			break;
 		case 1:
 			//канал с диммированием
-			customView.findViewById(R.id.dimmedChannel).setVisibility(
-					View.VISIBLE);
+			customView.findViewById(R.id.dimmedChannel).setVisibility(View.VISIBLE);
 
 			layout = (LinearLayout) customView.findViewById(R.id.dimmedChannel);
 			//установка названия канала
 			title = (TextView) customView.findViewById(R.id.dimmedChannelTitle);
 
 			//установка отображения кнопки включения в соответствии с текущим состоянием
-			onBtn = (ImageButton) customView
-					.findViewById(R.id.dimmedChannelSwitch);
+			onBtn = (ImageButton) customView.findViewById(R.id.dimmedChannelSwitch);
 			onBtn.setTag(new Integer(position));
 			onBtn.setOnClickListener(this);
 
 			//инициализация seekBar
-			seekBar = (SeekBar) customView
-					.findViewById(R.id.dimmedChannelSeekBar);
+			seekBar = (SeekBar) customView.findViewById(R.id.dimmedChannelSeekBar);
 			seekBar.setOnSeekBarChangeListener(this);
 			seekBar.setTag(new Integer(position));
 			seekBar.setMax(100);
-			seekBar.getProgressDrawable().setColorFilter(0xff00B89C,
-					Mode.SRC_IN);
+			seekBar.getProgressDrawable().setColorFilter(0xff00B89C, Mode.SRC_IN);
 
 			//отображение элемента списка в соответствии с текущим состоянием канала
 			if (newChannel.getState() == 0) {
@@ -181,14 +183,11 @@ public class ChannelListAdapter extends BaseAdapter implements
 			break;
 		case 3:
 			//канал с диодами
-
-			customView.findViewById(R.id.LEDChannel)
-					.setVisibility(View.VISIBLE);
+			customView.findViewById(R.id.LEDChannel).setVisibility(View.VISIBLE);
 			title = (TextView) customView.findViewById(R.id.LEDChannelTitle);
 
 			//кнопка включения-выключения канала
-			btnLEDStart = (ImageButton) customView
-					.findViewById(R.id.LEDChannelSwitchButton);
+			btnLEDStart = (ImageButton) customView.findViewById(R.id.LEDChannelSwitchButton);
 			btnLEDStart.setOnClickListener(this);
 			btnLEDStart.setTag(new Integer(position));
 
@@ -240,70 +239,45 @@ public class ChannelListAdapter extends BaseAdapter implements
             btnSave.setTag(new Integer(position));
             break;
 
-		case 44:
+		case NooLiteDefs.CHANNEL_TYPE_SENSOR:
 			//датчики
 			//список текущих значений показаний датчиков
-			ArrayList<String> values = SettingsValues.sensorValues;
+            List<SensorData> sensorDataList = SettingsValues.getSensorData();
+            SensorData currentSensor = null;
 
-			customView.findViewById(R.id.sensorChannel).setVisibility(
-					View.VISIBLE);
+            for (SensorData sensorData : sensorDataList) {
+                if (sensorData.getId() == newChannel.getId()) {
+                    currentSensor = sensorData;
+                }
+            }
+			customView.findViewById(R.id.sensorChannel).setVisibility(View.VISIBLE);
 
 			//название датчика
-			sensorTitle = (TextView) customView.findViewById(R.id.sensorTitle);
-			sensorTitle.setText(channelTitle);
+            TextView sensorTitle = (TextView) customView.findViewById(R.id.sensorTitle);
+			sensorTitle.setText(newChannel.getName());
 
 			//температура датчика
-			sensorTemperature = (TextView) customView
-					.findViewById(R.id.sensorTemperature);
-			try{
-				sensorTemperature.setText(values.get(newChannel.getId() * 3)
-					+ " \u00B0C");
-			}catch(Exception ex){
-				sensorTemperature.setText("- \u00B0C");
-			}
 
-			//влажность датчика
-			sensorHumidity = (TextView) customView
-					.findViewById(R.id.sensorHumidity);
-			try{
-			sensorHumidity.setText(values.get(newChannel.getId() * 3 + 1)
-					+ " % RH");
-			}catch(Exception ex){
-				sensorHumidity.setText("- % RH");
-			}
+            TextView sensorTemperature = (TextView) customView.findViewById(R.id.sensorTemperature);
+            TextView sensorHumidity = (TextView) customView.findViewById(R.id.sensorHumidity);
+            if (currentSensor != null) {
+                sensorTemperature.setText(currentSensor.getAirTemperature() + " \u00B0C");
+                sensorHumidity.setText(currentSensor.getAirHumidity() + " % RH");
 
-			//информация о типе ошибки
-			String errorType = new String();
-			try{
-				errorType = values.get(newChannel.getId() * 3 + 2);
-			}catch(Exception ex){
-				errorType = "2";
-			}
-
-			//отображение типа возникшей ошибки
-			TextView warning = (TextView) customView.findViewById(R.id.warning);
-
-			//в случае отсутствия ошибок строка-пояснение убирается с элемента списка
-			if (errorType.equals("0")) {
-				warning.setVisibility(View.GONE);
-			}
-
-			if(errorType.equals("1")) {
-				warning.setVisibility(View.VISIBLE);
-				warning.setText("Датчик не привязан");
-			}
-
-			if (errorType.equals("2")) {
-				warning.setVisibility(View.VISIBLE);
-				warning.setText("Нет сигнала с датчика");
-			}
-
-			if (errorType.equals("3")) {
-				warning.setVisibility(View.VISIBLE);
-//				warning.setText("�������� ������� �������");
-				warning.setText("Внутренняя ошибка (3)");
-			}
-
+                //отображение типа возникшей ошибки
+                TextView warning = (TextView) customView.findViewById(R.id.warning);
+                //в случае отсутствия ошибок строка-пояснение убирается с элемента списка
+                String message = SensorStatus.getStatusMessage(currentSensor.getStatus());
+                if (message == null) {
+                    warning.setVisibility(View.GONE);
+                } else {
+                    warning.setVisibility(View.VISIBLE);
+                    warning.setText(message);
+                }
+            } else {
+                sensorTemperature.setText("- \u00B0C");
+                sensorHumidity.setText("- % RH");
+            }
 			break;
 		}
 
@@ -338,16 +312,15 @@ public class ChannelListAdapter extends BaseAdapter implements
 			public void callBack() {
 			}
 		});
-		String url = new String();
 
 		//строка запроса на шлюз
-		url = "http://" + SettingsValues.getIP() + "/api.htm?ch="
-				+ (current.getId() - 1) + "&cmd=6&fm=3&br="
-				+ seekBar.getProgress();
+//        String url = "http://" + SettingsValues.getIP() + "/api.htm?ch="
+//				+ (current.getId() - 1) + "&cmd=6&fm=3&br="
+//				+ seekBar.getProgress();
+        String url = UrlUtils.getFmBarUrl(current.getId() - 1, 6, 3, seekBar.getProgress());
 
 		//изменение состояния UI
-		LinearLayout ll = (LinearLayout) ((LinearLayout) seekBar.getParent())
-				.getParent();
+		LinearLayout ll = (LinearLayout) seekBar.getParent().getParent();
 		switch (ll.getId()) {
 		case R.id.dimmedChannel:
 			ImageButton btn = (ImageButton) ll
@@ -377,7 +350,8 @@ public class ChannelListAdapter extends BaseAdapter implements
 		current.setState(seekBar.getProgress());
 
 		//обновление БД
-		DBManagerChannel.update(current);
+		ChannelsDataSource channelDS = DataSourceManager.getInstance().getChannelsDS(context);
+		channelDS.update(current);
 	}
 
 	//обработка событий включения-выключения канала
@@ -393,21 +367,23 @@ public class ChannelListAdapter extends BaseAdapter implements
 			public void callBack() {
 			}
 		});
-		String url = new String();
+        int cmd = 0;
+
 		if (isChecked) {
-			url = "http://" + SettingsValues.getIP() + "/api.htm?ch=" + (current.getId() - 1)
-					+ "&cmd=2";
+            cmd = 2;
+//            url = "http://" + SettingsValues.getIP() + "/api.htm?ch=" + (current.getId() - 1) + "&cmd=2";
 		} else {
-			url = "http://" + SettingsValues.getIP() + "/api.htm?ch=" + (current.getId() - 1)
-					+ "&cmd=0";
+//			url = "http://" + SettingsValues.getIP() + "/api.htm?ch=" + (current.getId() - 1) + "&cmd=0";
 		}
 		//отправка команды на шлюз
-        requestTask.execute(url);
+        requestTask.execute(UrlUtils.getCmdUrl(current.getId() - 1, cmd));
 	}
 
 	//обработчики события нажатия на кнопки
 	@Override
 	public void onClick(View v) {
+		ChannelsDataSource channelDS = DataSourceManager.getInstance().getChannelsDS(context);
+
 		//воспроизведение звука
 		v.setSoundEffectsEnabled(true);
 		if (SettingsValues.getSound()) {
@@ -426,36 +402,34 @@ public class ChannelListAdapter extends BaseAdapter implements
 			public void callBack() {
 			}
 		});
-		String url = new String();
+//		String url = new String();
 
 		//по id компонентов UI выбираем необходимую кнопку
 		switch (v.getId()) {
 		case R.id.scenarioStart:
 			//запуск сценария
-			url = "http://" + SettingsValues.getIP() + "/api.htm?ch="
-					+ (current.getId() - 1) + "&cmd=7";
+//			url = "http://" + SettingsValues.getIP() + "/api.htm?ch=" + (current.getId() - 1) + "&cmd=7";
 			current.setState(100);
 			current.setPreviousState(0);
-			DBManagerChannel.update(current);
-			requestTask.execute(url);
+			channelDS.update(current);
+			requestTask.execute(UrlUtils.getCmdUrl(current.getId() - 1, 7));
 			break;
 		case R.id.scenarioSave:
 			//сохранение сценария
-			url = "http://" + SettingsValues.getIP() + "/api.htm?ch="
-					+ (current.getId() - 1) + "&cmd=8";
-			requestTask.execute(url);
+//			url = "http://" + SettingsValues.getIP() + "/api.htm?ch="
+//					+ (current.getId() - 1) + "&cmd=8";
+			requestTask.execute(UrlUtils.getCmdUrl(current.getId() - 1, 8));
 			current.setState(0);
 			current.setPreviousState(100);
-			DBManagerChannel.update(current);
+			channelDS.update(current);
 			break;
 		case R.id.LEDChannelSwitchButton:
 			//включение-выключение в диодном канале
 			checked[tag] = !checked[tag];
-			LinearLayout LEDChannel = (LinearLayout) ((LinearLayout) v
-					.getParent()).getParent();
+			LinearLayout LEDChannel = (LinearLayout) v.getParent().getParent();
+			SeekBar seekBar = (SeekBar) LEDChannel.findViewById(R.id.LEDSeekBar);
+            String channelSwitchUrl = null;
 
-			SeekBar seekBar = (SeekBar) LEDChannel
-					.findViewById(R.id.LEDSeekBar);
 			if (checked[tag]) {
 				ImageButton btn = (ImageButton) v;
 				btn.setImageResource(R.drawable.selected);
@@ -466,72 +440,80 @@ public class ChannelListAdapter extends BaseAdapter implements
 					current.setState(current.getPreviousState());
 					seekBar.setProgress(current.getPreviousState());
 				}
-
-				DBManagerChannel.update(current);
+				channelDS.update(current);
+                channelSwitchUrl = UrlUtils.getFmBarUrl(current.getId() - 1, 6, 3, seekBar.getProgress());
 			} else {
-				url = "http://" + SettingsValues.getIP() + "/api.htm?ch="
-						+ (current.getId() - 1) + "&cmd=0";
-
+//				url = "http://" + SettingsValues.getIP() + "/api.htm?ch="
+//						+ (current.getId() - 1) + "&cmd=0";
 				ImageButton btn = (ImageButton) v;
 
 				btn.setImageResource(R.drawable.unselected);
 				current.setState(0);
 				current.setPreviousState(seekBar.getProgress());
 				seekBar.setProgress(0);
-				DBManagerChannel.update(current);
-			}
-			url = "http://" + SettingsValues.getIP() + "/api.htm?ch="
-					+ (current.getId() - 1) + "&cmd=6&fm=3&br="
-					+ seekBar.getProgress();
+				channelDS.update(current);
 
-			requestTask.execute(url);
+                channelSwitchUrl = UrlUtils.getCmdUrl(current.getId() - 1, 0);
+
+			}
+//			url = "http://" + SettingsValues.getIP() + "/api.htm?ch="
+//					+ (current.getId() - 1) + "&cmd=6&fm=3&br="
+//					+ seekBar.getProgress();
+
+			requestTask.execute(channelSwitchUrl);
 			break;
 		case R.id.LEDChannelColor:
 			//переливание цвета
-			url = "http://" + SettingsValues.getIP() + "/api.htm?ch="
-					+ (current.getId() - 1) + "&cmd=17";
-			requestTask.execute(url);
+//			url = "http://" + SettingsValues.getIP() + "/api.htm?ch="
+//					+ (current.getId() - 1) + "&cmd=17";
+			requestTask.execute(UrlUtils.getCmdUrl(current.getId() - 1, 17));
 			break;
 		case R.id.LEDChannelSave:
 			//сохранение сценария диодного канала
-			url = "http://" + SettingsValues.getIP() + "/api.htm?ch="
-					+ (current.getId() - 1) + "&cmd=10";
-			requestTask.execute(url);
+//			url = "http://" + SettingsValues.getIP() + "/api.htm?ch="
+//					+ (current.getId() - 1) + "&cmd=10";
+			requestTask.execute(UrlUtils.getCmdUrl(current.getId() - 1, 10));
 			break;
 		case R.id.ledChannelStart:
 			//запуск сценария диодного канала
-			url = "http://" + SettingsValues.getIP() + "/api.htm?ch="
-					+ (current.getId() - 1) + "&cmd=16";
-			requestTask.execute(url);
+//			url = "http://" + SettingsValues.getIP() + "/api.htm?ch="
+//					+ (current.getId() - 1) + "&cmd=16";
+			requestTask.execute(UrlUtils.getCmdUrl(current.getId() - 1, 16));
 			break;
 		case R.id.simpleChannelSwitch:
 			//включение-выключение в обычном канале
 			checked[tag] = !checked[tag];
+            int cmd = 0;
+
 			if (checked[tag]) {
-				url = "http://" + SettingsValues.getIP() + "/api.htm?ch="
-						+ (current.getId() - 1) + "&cmd=2";
+                cmd = 2;
+//				url = "http://" + SettingsValues.getIP() + "/api.htm?ch="
+//						+ (current.getId() - 1) + "&cmd=2";
 				ImageButton btn = (ImageButton) v;
 				btn.setImageResource(R.drawable.selected);
 				current.setState(255);
-				DBManagerChannel.update(current);
+				channelDS.update(current);
 			} else {
-				url = "http://" + SettingsValues.getIP() + "/api.htm?ch="
-						+ (current.getId() - 1) + "&cmd=0";
+                cmd = 0;
+//				url = "http://" + SettingsValues.getIP() + "/api.htm?ch="
+//						+ (current.getId() - 1) + "&cmd=0";
 				ImageButton btn = (ImageButton) v;
 				btn.setImageResource(R.drawable.unselected);
 				current.setState(0);
-				DBManagerChannel.update(current);
+				channelDS.update(current);
 			}
-
-			requestTask.execute(url);
+			requestTask.execute(UrlUtils.getCmdUrl(current.getId() - 1, cmd));
 			break;
+
 		case R.id.dimmedChannelSwitch:
 			//включение-выключение в диммированном канале
-			checked[tag] = !checked[tag];
-			LinearLayout dimmedChannel = (LinearLayout) ((LinearLayout) v
-					.getParent()).getParent();
-			SeekBar seekBarDimmedChannel = (SeekBar) dimmedChannel
-					.findViewById(R.id.dimmedChannelSeekBar);
+            checked[tag] = !checked[tag];
+            LinearLayout dimmedChannel = (LinearLayout) ((LinearLayout) v
+                    .getParent()).getParent();
+            SeekBar seekBarDimmedChannel = (SeekBar) dimmedChannel
+                    .findViewById(R.id.dimmedChannelSeekBar);
+            String dimmedCmd = null;
+
 			if (checked[tag]) {
 				ImageButton btn = (ImageButton) v;
 				btn.setImageResource(R.drawable.selected);
@@ -544,30 +526,30 @@ public class ChannelListAdapter extends BaseAdapter implements
 							.setProgress(current.getPreviousState());
 
 				}
-				url = "http://" + SettingsValues.getIP() + "/api.htm?ch="
-						+ (current.getId() - 1) + "&cmd=6&fm=3&br="
-						+ seekBarDimmedChannel.getProgress();
-				DBManagerChannel.update(current);
+//                url1 = "http://" + SettingsValues.getIP() + "/api.htm?ch="
+//						+ (current.getId() - 1) + "&cmd=6&fm=3&br="
+//						+ seekBarDimmedChannel.getProgress();
+                dimmedCmd = UrlUtils.getFmBarUrl(
+                        current.getId() - 1, 6, 3, seekBarDimmedChannel.getProgress());
+				channelDS.update(current);
 			} else {
-				url = "http://" + SettingsValues.getIP() + "/api.htm?ch="
-						+ (current.getId() - 1) + "&cmd=0";
+//                url1 = "http://" + SettingsValues.getIP() + "/api.htm?ch="
+//						+ (current.getId() - 1) + "&cmd=0";
+                dimmedCmd = UrlUtils.getCmdUrl(current.getId() - 1, 0);
 
 				ImageButton btn = (ImageButton) v;
 				btn.setImageResource(R.drawable.unselected);
 				current.setPreviousState(seekBarDimmedChannel.getProgress());
 				current.setState(0);
 				seekBarDimmedChannel.setProgress(0);
-				DBManagerChannel.update(current);
+				channelDS.update(current);
 			}
-			requestTask.execute(url);
+			requestTask.execute(dimmedCmd);
 			break;
 
         case R.id.openCloseSave:
             //http://192.168.0.168:8080/api.htm?ch=0&cmd=8&br=0
-            StringBuilder sb = new StringBuilder();
-            sb.append("http://").append(SettingsValues.getIP()).append("/api.htm?ch=");
-            sb.append(current.getId() - 1).append("&cmd=8");
-            requestTask.execute(sb.toString());
+            requestTask.execute(UrlUtils.getBarUrl(current.getId() - 1, 8, 0));
 		}
 	}
 }

@@ -5,17 +5,20 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.List;
 
 import android.content.Context;
 import android.util.Log;
 
+import com.noolite.NooLiteDefs;
 import com.noolite.channels.ChannelElement;
+import com.noolite.db.ds.ChannelsDataSource;
+import com.noolite.db.ds.DataSourceManager;
+import com.noolite.db.ds.GroupDataSource;
+import com.noolite.db.ds.TimerDataSource;
 import com.noolite.groups.GroupElement;
+import com.noolite.groups.SensorElement;
 import com.noolite.timers.TimerElement;
-
-import com.noolite.dbchannels.DBManagerChannel;
-import com.noolite.dbgroup.DBManagerGroup;
-import com.noolite.dbtimer.DBManagerTimer;
 
 public class BinParser {
 
@@ -42,77 +45,75 @@ public class BinParser {
 	public BinParser(byte[] data, Context context) {
 		this.data = data;
 		this.context = context;
-
-
 	}
 
-	public byte[] getData() {
-		return data;
-	}
-
-	public void setData(byte[] data) {
-		this.data = data;
-	}
-
-	public void parceData() throws UnsupportedEncodingException {
-
+	public void parceData() {
 		int currentPosition = 0;
-		this.connectToGroupDB();  //подключение к БД групп
 
+        List<SensorElement> sensorElements = parceSensor();
+        GroupDataSource groupDS = DataSourceManager.getInstance().getGroupDS(context);
+        ChannelsDataSource channelDS = DataSourceManager.getInstance().getChannelsDS(context);
+        TimerDataSource tds = DataSourceManager.getInstance().getTimerDS(context);
+        channelDS.deleteAll();
+        groupDS.deleteAll();
+        tds.deleteAll();
+
+        for (SensorElement element: sensorElements) {
+            groupDS.insertSensor(element);
+        }
 
 		//считывание информации о группах
-		for (int i = 0; i < NUMBER_OF_GROUPS; i++) {
-			ArrayList<Integer> channels = new ArrayList<Integer>();
-			ArrayList<Integer> sensors = new ArrayList<Integer>();
-			boolean visibility = true;
-
+		for (int groupId = 1; groupId <= NUMBER_OF_GROUPS; groupId++) {
 			//получение имени группы
-			String name = this.getName(currentPosition+START_OFFSET);
+			String groupName = this.getName(currentPosition + START_OFFSET);
 			//получение параметра видимости
-			visibility = this.getVisibilityOfGroup(data[START_OFFSET+currentPosition
-					+ OFFSET]);
+            boolean groupVisibility = this.getVisibilityOfGroup(data[START_OFFSET + currentPosition + OFFSET]);
 
-			//парсинг подключенных датчиков и добавление индексов сенсоров в ArrayList
-			for (int j = 1; j <= NUMBER_OF_SENSORS; j++) {
-				sensors.add(this.getSensorVisibility(data[START_OFFSET+currentPosition
-						+ OFFSET + j]));
-			}
+            if (groupVisibility) {
+                //добавление полученной группы в БД групп
+                GroupElement groupElement = new GroupElement(groupId, groupName, groupVisibility);
+                groupDS.add(groupElement);
 
+                //парсинг каналов группы и добавление индексов каналов в ArrayList
+                for (int j = 0; j < NUMBER_OF_CHANNELS_IN_GROUP; j++) {
+                    int val = this.getChannelInfo(data[currentPosition+START_OFFSET + OFFSET + j]);
 
-			//парсинг каналов группы и добавление индексов каналов в ArrayList
-			for (int j = 0; j < NUMBER_OF_CHANNELS_IN_GROUP; j++) {
-				channels.add(this.getChannelInfo(data[currentPosition+START_OFFSET + OFFSET
-						+ j]));
-			}
+                    if (val != 0) {
+                        channelDS.boundChannel(groupId, val);
+                    }
+                }
 
-			//добавление полученной группы в БД групп
-			GroupElement newElement = new GroupElement(i, name, channels,
-					sensors, visibility);
-            DBManagerGroup.add(newElement);
+                //парсинг подключенных датчиков и добавление индексов сенсоров в ArrayList
+                for (int j = 1; j <= NUMBER_OF_SENSORS; j++) {
+                    int val = this.getSensorVisibility(data[START_OFFSET + currentPosition + OFFSET + j]);
 
+                    if (val != 0) {
+                        for (SensorElement sensorElement : sensorElements) {
+                            if (sensorElement.getId().intValue() == j) {
+                                groupDS.boundSensor(groupElement, sensorElement);
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
 			//изменение сурсора текущей позиции
 			currentPosition += GROUP_OFFSET;
 		}
 
-        //подключение к БД каналов
-        this.connectToChannelDB();
-
 		//парсинг информации о каналах
-		for (int i = 0; i < NUMBER_OF_CHANNELS; i++) {
-			int type = 0;
+		for (int i = 1; i <= NUMBER_OF_CHANNELS; i++) {
 			//получение имени канала
             String name = this.getName(currentPosition+START_OFFSET);
 			//получение типа канада
-			type = data[START_OFFSET+currentPosition + OFFSET];
+			int type = data[START_OFFSET+currentPosition + OFFSET];
 
 			//создание нового объекта канала и добавление его в БД
-			ChannelElement newElement = new ChannelElement(i+1, name, type,
-					0, 0);
-            DBManagerChannel.add(newElement);
+			ChannelElement newElement = new ChannelElement(i, name, type,0, 0);
+			channelDS.add(newElement);
 
 			currentPosition += CHANNEL_OFFSET;
 		}
-
 
 		//сдвиг на позицию файла, где начинается информация о таймерах
         currentPosition = 1313;
@@ -145,33 +146,29 @@ public class BinParser {
 
 			//создание и добавление в БД нового объекта таймера
             TimerElement newTimer = new TimerElement(id, isOn, singleActivation, days, hour, minute, command);
-            DBManagerTimer.add(newTimer);
-            currentPosition +=TIMER_OFFSET;
+            tds.add(newTimer);
+            currentPosition += TIMER_OFFSET;
         }
 	}
 
-    //подключения к базам данных
-	private void connectToChannelDB() {
-        DBManagerChannel dbManagerChannel;
-        dbManagerChannel = DBManagerChannel.getInstance(context);
-        dbManagerChannel.connect(context);
-    }
+	private List<SensorElement> parceSensor() {
+        List<SensorElement> ret = new ArrayList<SensorElement>();
+        int m = 1456;
 
-    private void connectToGroupDB() {
-        DBManagerGroup dbManagerGroup;
-        dbManagerGroup = DBManagerGroup.getInstance(context);
-        dbManagerGroup.connect(context);
-    }
+		for (int i = 1; i <= NUMBER_OF_SENSORS; i++) {
+			String name = getName(m);
+			SensorElement element = new SensorElement(name, i);
+            ret.add(element);
+			Log.d(NooLiteDefs.NOO_LOG, element.toString());
+			m += 24;
+		}
+		return ret;
+	}
 
-    private void connectToTimerDB(){
-        DBManagerTimer dbManagerTimer;
-        dbManagerTimer = DBManagerTimer.getInstance(context);
-        dbManagerTimer.connect(context);
-    }
 
 
 	//получение имени из массива байт
-	private String getName(int currentPosition) throws UnsupportedEncodingException {
+	private String getName(int currentPosition) {
 		String result = null;
 		try {
 			ByteArrayOutputStream os = new ByteArrayOutputStream();
@@ -179,7 +176,7 @@ public class BinParser {
 			result = os.toString("cp1251");
             os.close();
 		} catch (IOException e) {
-			Log.d("getName", e.toString());
+			Log.d(NooLiteDefs.NOO_LOG, e.toString());
 		}
 		return (result != null) ? result.trim(): "no name";
 	}

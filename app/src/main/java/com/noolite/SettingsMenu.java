@@ -19,6 +19,7 @@ import android.widget.ListView;
 
 import com.noolite.adapters.CustomListAdapter;
 import com.noolite.groups.GroupElement;
+import com.noolite.groups.SensorElement;
 
 //Меню настроек, где доступен выбор - общие настройки приложения или настройки работы с pebble
 public class SettingsMenu extends Activity implements OnClickListener, OnItemClickListener{
@@ -44,8 +45,7 @@ public class SettingsMenu extends Activity implements OnClickListener, OnItemCli
 
 		actionBar.setCustomView(view, new LayoutParams(
 				LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
-		actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM
-				| ActionBar.DISPLAY_SHOW_HOME);
+		actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM | ActionBar.DISPLAY_SHOW_HOME);
 		actionBar.setDisplayShowHomeEnabled(false);
 		actionBar.setHomeButtonEnabled(false);
 		actionBar.setDisplayShowCustomEnabled(true);
@@ -55,8 +55,8 @@ public class SettingsMenu extends Activity implements OnClickListener, OnItemCli
 
 		//создание списка меню
 		ArrayList<GroupElement> listItems = new ArrayList<GroupElement>();
-		listItems.add(new GroupElement(1, "Общее", new ArrayList<Integer>(), new ArrayList<Integer>(), true));
-		listItems.add(new GroupElement(2, "Pebble Watch", new ArrayList<Integer>(), new ArrayList<Integer>(), true));
+		listItems.add(new GroupElement(1, "Общее", true));
+		listItems.add(new GroupElement(2, "Pebble Watch", true));
 		
 		menu = (ListView) findViewById(R.id.menu);
 		final CustomListAdapter customAdapter = new CustomListAdapter(this,
@@ -64,7 +64,7 @@ public class SettingsMenu extends Activity implements OnClickListener, OnItemCli
 		menu.setAdapter(customAdapter);
 		menu.setOnItemClickListener(this);
 		
-		}
+	}
 
 	@Override
 	public void onClick(View v) {

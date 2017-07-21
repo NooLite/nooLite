@@ -1,13 +1,8 @@
 package com.noolite.db.ds;
 
 import android.content.ContentValues;
-import android.content.Context;
 import android.database.Cursor;
-import android.database.SQLException;
-import android.database.sqlite.SQLiteDatabase;
 
-import com.noolite.db.NooLiteDB;
-import com.noolite.db.NooLiteDBSettings;
 import com.noolite.timers.TimerElement;
 
 import java.text.ParseException;
@@ -17,21 +12,9 @@ import java.util.ArrayList;
  * Created by urix on 12.04.17.
  */
 
-public class TimerDataSource {
+public class TimerDataSource extends BasicDataSource {
 
-    private SQLiteDatabase database;
-    private NooLiteDB dbHelper;
-
-    public TimerDataSource(Context context) {
-        dbHelper = new NooLiteDB(context);
-    }
-
-    public void open() throws SQLException {
-        database = dbHelper.getWritableDatabase();
-    }
-
-    public void close() {
-        dbHelper.close();
+    public TimerDataSource() {
     }
 
     //добавление в БД объекта класса TimerElement
@@ -40,29 +23,29 @@ public class TimerDataSource {
         //инициализация contentValues
         ContentValues cv;
         cv = new ContentValues();
-        cv.put(NooLiteDBSettings.ID, newTimer.getId());
+        cv.put(ID, newTimer.getId());
         if(newTimer.isOn())
-            cv.put(NooLiteDBSettings.IS_ON, 1);
+            cv.put(IS_ON, 1);
         else
-            cv.put(NooLiteDBSettings.IS_ON, 0);
+            cv.put(IS_ON, 0);
 
         if(newTimer.isSingleActivation())
-            cv.put(NooLiteDBSettings.SINGLE_ACTIVATION, 1);
+            cv.put(SINGLE_ACTIVATION, 1);
         else
-            cv.put(NooLiteDBSettings.SINGLE_ACTIVATION, 0);
+            cv.put(SINGLE_ACTIVATION, 0);
 
-        cv.put(NooLiteDBSettings.HOURS, newTimer.getHour());
-        cv.put(NooLiteDBSettings.MINUTES, newTimer.getMinute());
+        cv.put(HOURS, newTimer.getHour());
+        cv.put(MINUTES, newTimer.getMinute());
 
-        cv.put(NooLiteDBSettings.DAYS_OF_WEEK, newTimer.getActiveDays());
-        cv.put(NooLiteDBSettings.COMMAND, newTimer.getCommand());
+        cv.put(DAYS_OF_WEEK, newTimer.getActiveDays());
+        cv.put(COMMAND, newTimer.getCommand());
 
         //проведение транзакции на запись данных
         try {
-            database.beginTransaction();
-            database.insert(NooLiteDBSettings.TABLE_TIMER, null, cv);
-            database.setTransactionSuccessful();
-            database.endTransaction();
+            getDatabase().beginTransaction();
+            getDatabase().insert(TABLE_TIMER, null, cv);
+            getDatabase().setTransactionSuccessful();
+            getDatabase().endTransaction();
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -74,32 +57,31 @@ public class TimerDataSource {
 
     //удаление таймера по ID
     public void delete(TimerElement notification) {
-        database.delete(NooLiteDBSettings.TABLE_TIMER,
+        getDatabase().delete(TABLE_TIMER,
                 "id = " + String.valueOf(notification.getId()), null);
     }
 
     //удаление всех записей в БД
     public void deleteAll() {
-        database.delete(NooLiteDBSettings.TABLE_TIMER,
-                null, null);
+        getDatabase().delete(TABLE_TIMER, null, null);
     }
 
     //получение всех записей из БД
     public ArrayList<TimerElement> getAll()
             throws ParseException {
         ArrayList<TimerElement> listOfAllTimers = new ArrayList<TimerElement>();
-        Cursor c = database.query(NooLiteDBSettings.TABLE_TIMER, null, null, null, null,
+        Cursor c = getDatabase().query(TABLE_TIMER, null, null, null, null,
                 null, null);
 
         if (c.moveToFirst()) {
             //инициализация номеров колонок в БД
-            int idColumn = c.getColumnIndex(NooLiteDBSettings.ID);
-            int isOnColumn = c.getColumnIndex(NooLiteDBSettings.IS_ON);
-            int singleActivationColumn = c.getColumnIndex(NooLiteDBSettings.SINGLE_ACTIVATION);
-            int hourColumn = c.getColumnIndex(NooLiteDBSettings.HOURS);
-            int minuteColumn = c.getColumnIndex(NooLiteDBSettings.MINUTES);
-            int daysColumn = c.getColumnIndex(NooLiteDBSettings.DAYS_OF_WEEK);
-            int commandColumn = c.getColumnIndex(NooLiteDBSettings.COMMAND);
+            int idColumn = c.getColumnIndex(ID);
+            int isOnColumn = c.getColumnIndex(IS_ON);
+            int singleActivationColumn = c.getColumnIndex(SINGLE_ACTIVATION);
+            int hourColumn = c.getColumnIndex(HOURS);
+            int minuteColumn = c.getColumnIndex(MINUTES);
+            int daysColumn = c.getColumnIndex(DAYS_OF_WEEK);
+            int commandColumn = c.getColumnIndex(COMMAND);
 
             //чтение всех записей БД, удовлетворяющих выполненному запросу
             do {

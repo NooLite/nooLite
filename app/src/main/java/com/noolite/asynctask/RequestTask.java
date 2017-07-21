@@ -14,6 +14,7 @@ import android.util.Base64;
 import android.util.Log;
 
 public class RequestTask extends AsyncTask<String, Void, Integer> {
+    private String TAG = RequestTask.class.getSimpleName();
 
 	
 	private WeakReference<RequestInterface> weakReferenceRequestInterface;
@@ -34,7 +35,7 @@ public class RequestTask extends AsyncTask<String, Void, Integer> {
 	@Override
 	protected Integer doInBackground(String... url) {
 		try{
-			Log.d("RequestTask: ", url[0]);
+			Log.d(TAG, url[0]);
 			URL obj = new URL(url[0]);
 			
 			String username = SettingsValues.getUsername();
@@ -42,14 +43,12 @@ public class RequestTask extends AsyncTask<String, Void, Integer> {
 			String userPassword = username+":"+password;
 			byte[] data = userPassword.getBytes("UTF-8");
 			String encoding = Base64.encodeToString(data, Base64.DEFAULT);
-			
 			HttpURLConnection con = (HttpURLConnection) obj.openConnection();
-
 			con.setRequestMethod("GET");
-			//проверна на необходимость добавление параметра аутентификации
-			// в заговолок http запроса
-			if(SettingsValues.getAuth())
-				con.addRequestProperty("Authorization", "Basic " + encoding);
+
+			if(SettingsValues.getAuth()) {
+                con.addRequestProperty("Authorization", "Basic " + encoding);
+            }
 
 			BufferedReader in = new BufferedReader(
 			        new InputStreamReader(con.getInputStream()));
@@ -62,7 +61,7 @@ public class RequestTask extends AsyncTask<String, Void, Integer> {
 			in.close();
 	
 		}catch(Exception ex){
-			Log.e("RequestTask: ", "send RQ to gate", ex);
+			Log.e(TAG, "send RQ to gate", ex);
 			return 1;
 		}
 		return 0;

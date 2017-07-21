@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import android.app.ActionBar;
@@ -19,7 +20,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Environment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -31,16 +31,16 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import android.widget.Toast;
-
 import com.noolite.adapters.CustomListAdapter;
 import com.noolite.asynctask.DownloadInterface;
 import com.noolite.asynctask.DownloadXMLTask;
 import com.noolite.channels.ChannelElement;
-import com.noolite.dbchannels.DBManagerChannel;
-import com.noolite.dbgroup.DBManagerGroup;
+import com.noolite.db.ds.BasicDataSource;
+import com.noolite.db.ds.ChannelsDataSource;
+import com.noolite.db.ds.DataSourceManager;
+import com.noolite.db.ds.GroupDataSource;
 import com.noolite.groups.GroupElement;
-import com.noolite.parsers.BinParser;
+import com.noolite.groups.SensorElement;
 import com.noolite.parsers.XMLParser;
 import com.noolite.pebble.PebbleManager;
 import com.noolite.settings.SettingsValues;
@@ -51,12 +51,12 @@ public class MainActivity extends Activity implements OnItemClickListener,
 
 	private ArrayList<GroupElement> groups = new ArrayList<GroupElement>(); //список отображаемых групп
 
-	private DBManagerGroup dbManager; //обьект-синглтон для работы с бд
-	private Intent intent;
+	//private DBManagerGroup dbManager; //обьект-синглтон для работы с бд
+//	private Intent intent;
 
 	//элементы UI приложения
-	private ActionBar actionBar;
-	private View view;
+//	private ActionBar actionBar;
+//	private View view;
 	private ImageButton settingsBtn, timerButton;
 	private ListView groupListView;
 
@@ -65,13 +65,11 @@ public class MainActivity extends Activity implements OnItemClickListener,
 
 	//объект, работающий с pebble и ID приложения для pebble
 	private PebbleManager pm;
-	private final static UUID APP_UUID = UUID
-			.fromString("1151b807-682b-46c2-a945-1707516fce6f");
-
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+
 		setContentView(R.layout.activity_main);
 
 		//регистрация обработчика получения сообщений с pebble
@@ -93,7 +91,7 @@ public class MainActivity extends Activity implements OnItemClickListener,
 		//получение системных настроек приложения
 		sharedPref = this.getPreferences(Context.MODE_PRIVATE);
 		SettingsValues.setSound(sharedPref.getBoolean(getString(R.string.play_sound), true));
-		SettingsValues.setIP(sharedPref.getString("IP", "192.168.0.168"));
+		SettingsValues.setIP(sharedPref.getString("IP", "192.168.0.168:8080"));
 		SettingsValues.setPassword(sharedPref.getString("password", ""));
 		SettingsValues.setUsername(sharedPref.getString("username", ""));
 		SettingsValues.setAuth(sharedPref.getBoolean("auth", true));
@@ -103,17 +101,14 @@ public class MainActivity extends Activity implements OnItemClickListener,
 		boolean isJustStarted = sharedPref.getBoolean("dialogShow", true);
 		
 		groupListView = (ListView) findViewById(R.id.lvGroups);
+		GroupDataSource groupDS = DataSourceManager.getInstance().getGroupDS(getApplicationContext());
+        try {
+            groups = groupDS.getAll();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
 
-		//получение записей из БД
-		dbManager = DBManagerGroup.getInstance(this);
-		dbManager.connect(this);
-		try {
-			groups = dbManager.getAll();
-		} catch (ParseException e) {
-			e.printStackTrace();
-		}
-
-		//проверка на необходимость показа демо-версии
+        //проверка на необходимость показа демо-версии
 		//при необходимости БД инициализируется значениями для демо-режима
 		if(SettingsValues.getDemo()){
 			if(isJustStarted){
@@ -125,16 +120,17 @@ public class MainActivity extends Activity implements OnItemClickListener,
 			}
 
 			try {
-				groups = DBManagerGroup.getAll();
+				groups = groupDS.getAll();
 
-                if (groups == null || groups.size() == 0) {
-                    initDB();
-                }
-                groups = DBManagerGroup.getAll();
+				if (groups == null || groups.size() == 0) {
+                    createDemoData();
+					groups = groupDS.getAll();
+				}
+
 			} catch (ParseException e) {
 				e.printStackTrace();
 			}
-		}else{
+		} else {
 			SharedPreferences.Editor edit = MainActivity.getSharedPref().edit();
 			edit.putBoolean("demo", false);
 			edit.commit();
@@ -142,16 +138,15 @@ public class MainActivity extends Activity implements OnItemClickListener,
 		}		
 
 		//связь списка и его адаптера
-		final CustomListAdapter customAdapter = new CustomListAdapter(this,
-				groups);
+		final CustomListAdapter customAdapter = new CustomListAdapter(this,	groups);
 		groupListView.setAdapter(customAdapter);
 		groupListView.setOnItemClickListener(this);
 
 		//связь с action bar и его настройка
 		LayoutInflater vi = (LayoutInflater) getApplicationContext()
 				.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-		view = vi.inflate(R.layout.action_bar_main_activity, null);
-		actionBar = getActionBar();
+		View view = vi.inflate(R.layout.action_bar_main_activity, null);
+		ActionBar actionBar = getActionBar();
 		actionBar.setCustomView(view, new LayoutParams(
 				LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 		actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM | ActionBar.DISPLAY_SHOW_HOME);
@@ -202,17 +197,12 @@ public class MainActivity extends Activity implements OnItemClickListener,
 				}
 			}
 		}
-
-
 	}
 
 	//диалог-предупреждение о демо-режиме
 	private void showWarningDialog() {
 		final AlertDialog.Builder adb = new AlertDialog.Builder(this);
-
-		view = (LinearLayout) getLayoutInflater()
-				.inflate(R.layout.dialog, null);
-
+		View view = getLayoutInflater().inflate(R.layout.dialog, null);
 		adb.setView(view);
 
 		TextView msg = (TextView) view.findViewById(R.id.message);
@@ -236,58 +226,70 @@ public class MainActivity extends Activity implements OnItemClickListener,
 	}
 
 	//инициализация БД демо-версии
-	private void initDB() {
-		DBManagerGroup dmGroup = DBManagerGroup.getInstance(getApplicationContext());
-		dmGroup.connect(getApplicationContext());
-		
-		ArrayList<Integer> sensors = new ArrayList<Integer>();
-		for(int i=0; i<4; i++){
-			sensors.add(0);
-		}
-		ArrayList<Integer> channels = new ArrayList<Integer>();
-		channels.add(1);
-		channels.add(2);
-		channels.add(3);
-		DBManagerGroup.add(new GroupElement(0, "Зал demo", channels, sensors, true));
-		channels.clear();
-		channels.add(4);
-		channels.add(5);
-		channels.add(6);
-		DBManagerGroup.add(new GroupElement(1, "Спальня demo", channels, sensors, true));
-		channels.clear();
-		channels.add(7);
-		DBManagerGroup.add(new GroupElement(2, "Прихожая demo", channels, sensors, true));
-		
-		DBManagerChannel dmChannel = DBManagerChannel.getInstance(getApplicationContext());
-		dmChannel.connect(getApplicationContext());
-		DBManagerChannel.add(new ChannelElement(0, "Люстра", 0, 0, 0));
-		DBManagerChannel.add(new ChannelElement(1, "Бра", 1, 0, 0));
-		DBManagerChannel.add(new ChannelElement(2, "Торшер", 0, 0, 0));
-		DBManagerChannel.add(new ChannelElement(3, "Люстра", 0, 0, 0));
-		DBManagerChannel.add(new ChannelElement(4, "Подсветка", 3, 0, 0));
-		DBManagerChannel.add(new ChannelElement(5, "Вечер", 2, 0, 0));
-		DBManagerChannel.add(new ChannelElement(6, "Общее освещение", 0, 0, 0));
+	private void createDemoData() {
+        GroupDataSource groupDS = DataSourceManager.getInstance().getGroupDS(getApplicationContext());
+        ChannelsDataSource channelDS = DataSourceManager.getInstance().getChannelsDS(getApplicationContext());
+
+        ChannelElement channelElement1 = new ChannelElement(1, "Люстра", 0, 0, 0);
+        ChannelElement channelElement2 = new ChannelElement(2, "Бра", 1, 0, 0);
+        ChannelElement channelElement3 = new ChannelElement(3, "Торшер", 0, 0, 0);
+        ChannelElement channelElement4 = new ChannelElement(4, "Люстра", 0, 0, 0);
+        ChannelElement channelElement5 = new ChannelElement(5, "Подсветка", 3, 0, 0);
+        ChannelElement channelElement6 = new ChannelElement(6, "Вечер", 2, 0, 0);
+        ChannelElement channelElement7 = new ChannelElement(7, "Общее освещение", 0, 0, 0);
+        channelDS.add(channelElement1);
+        channelDS.add(channelElement2);
+        channelDS.add(channelElement3);
+        channelDS.add(channelElement4);
+        channelDS.add(channelElement5);
+        channelDS.add(channelElement6);
+        channelDS.add(channelElement7);
+
+        List<SensorElement> sensors = new ArrayList<SensorElement>();
+        for (int i = 1; i <= 4; i++){
+            sensors.add(new SensorElement("Датчик" + i, i));
+        }
+
+
+        ArrayList<Integer> channels = new ArrayList<Integer>();
+        channels.add(1);
+        channels.add(2);
+        channels.add(3);
+        GroupElement groupElement = new GroupElement(1, "Зал demo", true);
+        groupElement.setChannels(channels);
+        groupElement.setSensorElements(sensors);
+        groupDS.add(groupElement);
+        channelDS.boundChannel(groupElement, channelElement1);
+        channelDS.boundChannel(groupElement, channelElement2);
+        channelDS.boundChannel(groupElement, channelElement3);
+
+        channels.clear();
+        channels.add(4);
+        channels.add(5);
+        channels.add(6);
+        groupElement = new GroupElement(2, "Спальня demo", true);
+        groupElement.setChannels(channels);
+        groupElement.setSensorElements(sensors);
+        groupDS.add(groupElement);
+        channelDS.boundChannel(groupElement, channelElement4);
+        channelDS.boundChannel(groupElement, channelElement5);
+        channelDS.boundChannel(groupElement, channelElement6);
+
+        channels.clear();
+        channels.add(7);
+        groupElement = new GroupElement(3, "Прихожая demo", true);
+        groupElement.setChannels(channels);
+        groupElement.setSensorElements(sensors);
+        groupDS.add(groupElement);
+        channelDS.boundChannel(groupElement, channelElement7);
 	}
 
 	//по нажатию на элемент списка происходит передача данных в Activity каналов
 	@Override
-	public void onItemClick(AdapterView<?> parent, View view, int position,
-			long id) {
-		//создание структур данных с информацией о группе
-		ArrayList<Integer> channelsToView = new ArrayList<Integer>();
-		for (Integer i : groups.get(position).getChannels()) {
-			channelsToView.add(i);
-		}
-		ArrayList<Integer> sensorsToView = new ArrayList<Integer>();
-		
-		for (Integer i: groups.get(position).getSensors()){
-			sensorsToView.add(i);
-		}
+	public void onItemClick(AdapterView<?> parent, View view, int position,	long id) {
 		//передача информации о группе в другое Activity
-		intent = new Intent(this, ChannelViewActivity.class);
-		intent.putIntegerArrayListExtra("channels", channelsToView);
-		intent.putIntegerArrayListExtra("sensors", sensorsToView);
-		intent.putExtra("title", groups.get(position).getName());
+        Intent intent = new Intent(this, ChannelViewActivity.class);
+		intent.putExtra(BasicDataSource.GROUP_ID, id);
 		startActivity(intent);
 		finish();
 	}
@@ -296,8 +298,8 @@ public class MainActivity extends Activity implements OnItemClickListener,
 	@Override
 	public void onClick(View v) {
 		switch (v.getId()) {
-		case R.id.settingsBtn:			
-			intent = new Intent(this, SettingsMenu.class);
+		case R.id.settingsBtn:
+            Intent intent = new Intent(this, SettingsMenu.class);
 			startActivity(intent);
 			finish();
 			break;
@@ -308,14 +310,30 @@ public class MainActivity extends Activity implements OnItemClickListener,
 	protected void onPause() {
         //Urix: added due to exception
         super.onPause();
-		super.onDestroy();
-		SharedPreferences.Editor edit = MainActivity
-				.getSharedPref().edit();
+//		super.onDestroy();
+		SharedPreferences.Editor edit = MainActivity.getSharedPref().edit();
 		edit.putBoolean("dialogShow", true);
 		edit.commit();
 	}
 	
 	public static SharedPreferences getSharedPref(){
 		return sharedPref;
-	}	
+	}
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        DataSourceManager.getInstance().close();
+    }
+
+    @Override
+    protected void onStart() {
+
+
+        super.onStart();
+    }
+
+
+
+
 }

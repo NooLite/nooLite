@@ -1,28 +1,27 @@
 package com.noolite.groups;
 
-import java.util.ArrayList;
+import com.noolite.channels.ChannelElement;
 
-import com.getpebble.android.kit.util.PebbleDictionary;
+import java.util.ArrayList;
+import java.util.List;
 
 //класс для хранения информации о группе
 public class GroupElement {
 
 	private int id;  //id группы
 	private String name; //имя группы
-	private ArrayList<Integer> channels; //список индексов каналов, входящих в группу
-	private ArrayList<Integer> sensors; //список индексов датчиков, входящих в группу
+	private List<Integer> channels; //список индексов каналов, входящих в группу
+    private List<ChannelElement> channelElements; //список индексов каналов, входящих в группу
+	private List<SensorElement> sensorElements; //список индексов датчиков, входящих в группу
 	private boolean visibility; //видимость группы в приложении
 
-	public GroupElement(int id, String name, ArrayList<Integer> channels,
-			ArrayList<Integer> sensors, boolean visibility) {
+	public GroupElement() {
+	}
+
+	public GroupElement(int id, String name, boolean visibility) {
 		this.id = id;
 		this.name = name;
-		this.channels = channels;
-		this.sensors = sensors;
 		this.visibility = visibility;
-		
-		
-	
 	}
 
 	public int getId() {
@@ -41,19 +40,40 @@ public class GroupElement {
 		this.name = name;
 	}
 
-	public ArrayList<Integer> getChannels() {
+	public List<Integer> getChannels() {
+		if (channels == null) {
+			channels = new ArrayList<Integer>(8);
+		}
 		return channels;
 	}
 
-	public void setChannels(ArrayList<Integer> channels) {
+	public void setChannels(List<Integer> channels) {
 		this.channels = channels;
 	}
 
-	public ArrayList<Integer> getSensors() {
-		return sensors;
+	public List<SensorElement> getSensorElements() {
+		if (sensorElements == null) {
+			sensorElements = new ArrayList<SensorElement>(4);
+		}
+		return sensorElements;
 	}
 
-	public boolean getVisibility(){
+	public void setSensorElements(List<SensorElement> sensorElements) {
+		this.sensorElements = sensorElements;
+	}
+
+    public List<ChannelElement> getChannelElements() {
+        if (channelElements == null) {
+            channelElements = new ArrayList<ChannelElement>(8);
+        }
+        return channelElements;
+    }
+
+    public void setChannelElements(List<ChannelElement> channelElements) {
+        this.channelElements = channelElements;
+    }
+
+    public boolean getVisibility(){
 		return this.visibility;
 	}
 	

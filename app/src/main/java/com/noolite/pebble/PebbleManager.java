@@ -3,6 +3,7 @@ package com.noolite.pebble;
 import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import receiver.DataReceiver;
@@ -10,22 +11,17 @@ import receiver.DataReceiver;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.util.Log;
-import android.widget.ImageButton;
-import android.widget.Toast;
 
 import com.getpebble.android.kit.PebbleKit;
-import com.getpebble.android.kit.PebbleKit.PebbleDataReceiver;
-import com.getpebble.android.kit.PebbleKit.PebbleNackReceiver;
 import com.getpebble.android.kit.util.PebbleDictionary;
-import com.noolite.R;
-import com.noolite.adapters.ChannelListAdapter;
 import com.noolite.asynctask.RequestInterface;
 import com.noolite.asynctask.RequestTask;
 import com.noolite.channels.ChannelElement;
-import com.noolite.dbchannels.DBManagerChannel;
-import com.noolite.dbgroup.DBManagerGroup;
+import com.noolite.db.ds.ChannelsDataSource;
+import com.noolite.db.ds.DataSourceManager;
+import com.noolite.db.ds.GroupDataSource;
 import com.noolite.groups.GroupElement;
+import com.noolite.groups.SensorElement;
 import com.noolite.settings.SettingsValues;
 
 public class PebbleManager extends BroadcastReceiver {
@@ -55,8 +51,13 @@ public class PebbleManager extends BroadcastReceiver {
 
 	private Context context;
 
+	private GroupDataSource groupDS;
+	private ChannelsDataSource channelDS;
+
 	public PebbleManager(Context context) {
 		this.context = context;
+		groupDS = DataSourceManager.getInstance().getGroupDS(context);
+		channelDS = DataSourceManager.getInstance().getChannelsDS(context);
 	}
 
 	public boolean isConnected() {
@@ -76,10 +77,11 @@ public class PebbleManager extends BroadcastReceiver {
 		if (commandCode.equals(CHN_INFO)) {
 
 			//команда получения информации о следующем канале в группе
-			DBManagerGroup dbGroup = DBManagerGroup.getInstance(context);
-			dbGroup.connect(context);
+//			DBManagerGroup dbGroup = DBManagerGroup.getInstance(context);
+//			dbGroup.connect(context);
 
-			groups = dbGroup.getAll();
+
+			groups = groupDS.getAll();
 			//получение комеров каналов из текущей группы
 			ArrayList<Integer> indexesOfChannelsInGroup = new ArrayList<Integer>();
 			for (Integer i : groups.get(Values.indexOfCurrentGroup - 1)
@@ -90,12 +92,11 @@ public class PebbleManager extends BroadcastReceiver {
 			Values.totalCountOfChannels = groups
 					.get(Values.indexOfCurrentGroup - 1).getChannels().size();
 
-			ArrayList<Integer> sensors = new ArrayList<Integer>();
-			ArrayList<Integer> sensorsToView = new ArrayList<Integer>();
-			sensors = groups.get(Values.indexOfCurrentGroup - 1).getSensors();
+			List<Integer> sensorsToView = new ArrayList<Integer>();
+            List<SensorElement> sensors = groups.get(Values.indexOfCurrentGroup - 1).getSensorElements();
 			for (int i = 0; i < sensors.size(); i++) {
-				if (sensors.get(i) != 0) {
-					sensorsToView.add(i);
+				if (sensors.get(i).getId() != 0) {
+					sensorsToView.add(sensors.get(i).getId());
 				}
 			}
 			Values.totalCountOfDetectors = sensorsToView.size();
@@ -127,11 +128,11 @@ public class PebbleManager extends BroadcastReceiver {
 			} else {
 
 				//передача информации о канале
-				DBManagerChannel dbChannels = DBManagerChannel
-						.getInstance(context);
-				dbChannels.connect(context);
+//				DBManagerChannel dbChannels = DBManagerChannel
+//						.getInstance(context);
+//				dbChannels.connect(context);
 
-				channels = dbChannels.getAll();
+				channels = channelDS.getAll();
 
 				//добавление информации о имени группы
 				data.addString(GROUPE_NAME_KEY,
@@ -169,9 +170,10 @@ public class PebbleManager extends BroadcastReceiver {
 			//передача информации о следующей группе
 
 			//получение данных из БД
-			DBManagerGroup dbGroup = DBManagerGroup.getInstance(context);
-			dbGroup.connect(context);
-			groups = dbGroup.getAll();
+//			DBManagerGroup dbGroup = DBManagerGroup.getInstance(context);
+//			dbGroup.connect(context);
+
+			groups = groupDS.getAll();
 
 			//обработка текущих индексов
 			Values.totalCountOfGroups = groups.size();
@@ -185,15 +187,14 @@ public class PebbleManager extends BroadcastReceiver {
 			Values.totalCountOfChannels = indexesOfChannelsInGroup.size();
 			Values.indexOfCurrentChannel = 1;
 
-			ArrayList<Integer> sensors = new ArrayList<Integer>();
-			sensors = groups.get(0).getSensors();
+			List<SensorElement> sensors = groups.get(0).getSensorElements();
 
 			Values.totalCountOfDetectors = sensors.size();
 
-			DBManagerChannel dbChannels = DBManagerChannel.getInstance(context);
-			dbChannels.connect(context);
+//			DBManagerChannel dbChannels = DBManagerChannel.getInstance(context);
+//			dbChannels.connect(context);
 
-			channels = dbChannels.getAll();
+			channels = channelDS.getAll();
 
 			//передача информации о имени группы
 			data.addString(GROUPE_NAME_KEY, groups.get(0).getName());
@@ -230,20 +231,20 @@ public class PebbleManager extends BroadcastReceiver {
 				}
 			});
 
-			DBManagerGroup dmGroup = DBManagerGroup.getInstance(context);
-			dmGroup.connect(context);
+//			DBManagerGroup dmGroup = DBManagerGroup.getInstance(context);
+//			dmGroup.connect(context);
 
-			groups = dmGroup.getAll();
+			groups = groupDS.getAll();
 			//получение информации о текущем канале
 			GroupElement currentGroup = groups
 					.get(Values.indexOfCurrentGroup - 1);
 			if (Values.indexOfCurrentChannel <= Values.totalCountOfChannels) {
 
-				DBManagerChannel dmChannel = DBManagerChannel
-						.getInstance(context);
-				dmChannel.connect(context);
+//				DBManagerChannel dmChannel = DBManagerChannel
+//						.getInstance(context);
+//				dmChannel.connect(context);
 
-				channels = dmChannel.getAll();
+				channels = channelDS.getAll();
 				ChannelElement current = channels
 						.get(currentGroup.getChannels().get(
 								Values.indexOfCurrentChannel - 1) - 1);
@@ -260,7 +261,8 @@ public class PebbleManager extends BroadcastReceiver {
 							current.setState(current.getPreviousState());
 						} else
 							current.setState(255);
-						DBManagerChannel.update(current);
+//						DBManagerChannel.update(current);
+						channelDS.update(current);
 
 					} else {
 						url = "http://" + SettingsValues.getIP()
@@ -272,7 +274,8 @@ public class PebbleManager extends BroadcastReceiver {
 						}
 						current.setState(0);
 
-						DBManagerChannel.update(current);
+//						DBManagerChannel.update(current);
+						channelDS.update(current);
 					}
 				} else {
 
@@ -280,7 +283,8 @@ public class PebbleManager extends BroadcastReceiver {
 							+ (current.getId() - 1) + "&cmd=7";
 					current.setState(100);
 					current.setPreviousState(0);
-					DBManagerChannel.update(current);
+//					DBManagerChannel.update(current);
+					channelDS.update(current);
 
 				}
 
@@ -299,20 +303,20 @@ public class PebbleManager extends BroadcastReceiver {
 				}
 			});
 
-			DBManagerGroup dmGroup = DBManagerGroup.getInstance(context);
-			dmGroup.connect(context);
+//			DBManagerGroup dmGroup = DBManagerGroup.getInstance(context);
+//			dmGroup.connect(context);
 
 			//получение информации о канале
-			groups = dmGroup.getAll();
+			groups = groupDS.getAll();
 			GroupElement currentGroup = groups
 					.get(Values.indexOfCurrentGroup - 1);
 			if (Values.indexOfCurrentChannel <= Values.totalCountOfChannels) {
 
-				DBManagerChannel dmChannel = DBManagerChannel
-						.getInstance(context);
-				dmChannel.connect(context);
+//				DBManagerChannel dmChannel = DBManagerChannel
+//						.getInstance(context);
+//				dmChannel.connect(context);
 
-				channels = dmChannel.getAll();
+				channels = channelDS.getAll();
 				ChannelElement current = channels
 						.get(currentGroup.getChannels().get(
 								Values.indexOfCurrentChannel - 1) - 1);
@@ -327,7 +331,8 @@ public class PebbleManager extends BroadcastReceiver {
 					url = "http://" + SettingsValues.getIP() + "/api.htm?ch="
 							+ (current.getId() - 1) + "&cmd=6&fm=3&br="
 							+ newValue;
-					DBManagerChannel.update(current);
+//					DBManagerChannel.update(current);
+					channelDS.update(current);
 
 					requestTask.execute(url);
 				}
@@ -344,25 +349,16 @@ public class PebbleManager extends BroadcastReceiver {
 
 				}
 			});
-
-			DBManagerGroup dmGroup = DBManagerGroup.getInstance(context);
-			dmGroup.connect(context);
-
-			groups = dmGroup.getAll();
+			groups = groupDS.getAll();
 			GroupElement currentGroup = groups
 					.get(Values.indexOfCurrentGroup - 1);
 
-			DBManagerChannel dmChannel = DBManagerChannel.getInstance(context);
-			dmChannel.connect(context);
-
-			channels = dmChannel.getAll();
+			channels = channelDS.getAll();
 			ChannelElement current = channels.get(currentGroup.getChannels()
 					.get(Values.indexOfCurrentChannel - 1) - 1);
 
 			if (current.getType() == 3) {
-				String url = new String();
-
-				url = "http://" + SettingsValues.getIP() + "/api.htm?ch="
+                String url = "http://" + SettingsValues.getIP() + "/api.htm?ch="
 						+ (current.getId() - 1) + "&cmd=16";
 				requestTask.execute(url);
 			}
@@ -377,34 +373,23 @@ public class PebbleManager extends BroadcastReceiver {
 
 				}
 			});
-
-			DBManagerGroup dmGroup = DBManagerGroup.getInstance(context);
-			dmGroup.connect(context);
-
-			groups = dmGroup.getAll();
+			groups = groupDS.getAll();
 			GroupElement currentGroup = groups
 					.get(Values.indexOfCurrentGroup - 1);
 
-			DBManagerChannel dmChannel = DBManagerChannel.getInstance(context);
-			dmChannel.connect(context);
-
-			channels = dmChannel.getAll();
+			channels = channelDS.getAll();
 			ChannelElement current = channels.get(currentGroup.getChannels()
 					.get(Values.indexOfCurrentChannel - 1) - 1);
 
 			if (current.getType() == 3) {
-				String url = new String();
-
-				url = "http://" + SettingsValues.getIP() + "/api.htm?ch="
+				String url = "http://" + SettingsValues.getIP() + "/api.htm?ch="
 						+ (current.getId() - 1) + "&cmd=10";
 				requestTask.execute(url);
 			}
 
 		}
-
 		//передача собранной информации в словаре на часы
 		PebbleKit.sendDataToPebble(context, APP_UUID, data);
-
 	}
 
 	//вычисление следующего уровня яркости
@@ -429,4 +414,6 @@ public class PebbleManager extends BroadcastReceiver {
 			Values.count++;
 		}
 	}
+
+
 }

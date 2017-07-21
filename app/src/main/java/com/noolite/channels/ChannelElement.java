@@ -9,6 +9,10 @@ public class ChannelElement {
 	private int type; //тип канала
 	private int state; //текущее состояние
 	private int previousState; //прошлое состояние
+
+    public ChannelElement(int id) {
+        this.id = id;
+    }
 	
 	public ChannelElement(int id, String name, int type, int state, int previousState) {
 		this.id = id;
@@ -38,7 +42,11 @@ public class ChannelElement {
 		return type;
 	}
 
-	public int getState() {
+    public void setType(int type) {
+        this.type = type;
+    }
+
+    public int getState() {
 		return state;
 	}
 

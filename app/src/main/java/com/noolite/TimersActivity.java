@@ -11,10 +11,9 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.noolite.adapters.ChannelListAdapter;
 import com.noolite.adapters.TimerListAdapter;
-import com.noolite.dbchannels.DBManagerChannel;
-import com.noolite.dbtimer.DBManagerTimer;
+import com.noolite.db.ds.DataSourceManager;
+import com.noolite.db.ds.TimerDataSource;
 import com.noolite.timers.TimerElement;
 
 import java.text.ParseException;
@@ -64,12 +63,15 @@ public class TimersActivity extends Activity {
 
         //получение таймеров из базы данных
         ArrayList<TimerElement> allTimers = new ArrayList<TimerElement>();
-        DBManagerTimer dbManager = DBManagerTimer
-                .getInstance(getApplicationContext());
-        dbManager.connect(getApplicationContext());
+//        DBManagerTimer dbManager = DBManagerTimer
+//                .getInstance(getApplicationContext());
+//        dbManager.connect(getApplicationContext());
+
+        TimerDataSource tds = DataSourceManager.getInstance().getTimerDS(getApplicationContext());
 
         try {
-            allTimers = DBManagerTimer.getAll();
+//            allTimers = DBManagerTimer.getAll();
+            allTimers = tds.getAll();
 
         } catch (ParseException e) {
             e.printStackTrace();

@@ -8,13 +8,10 @@ import receiver.UpdateReceiver;
 import android.app.ActionBar;
 import android.app.ActionBar.LayoutParams;
 import android.app.Activity;
-import android.content.BroadcastReceiver;
-import android.content.ComponentCallbacks;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.content.res.Configuration;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -23,12 +20,15 @@ import android.view.View.OnClickListener;
 import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.noolite.R;
 import com.noolite.adapters.ChannelListAdapter;
 import com.noolite.channels.ChannelElement;
-import com.noolite.dbchannels.DBManagerChannel;
+import com.noolite.db.ds.BasicDataSource;
+import com.noolite.db.ds.ChannelsDataSource;
+import com.noolite.db.ds.DataSourceManager;
+import com.noolite.db.ds.GroupDataSource;
+import com.noolite.groups.GroupElement;
+import com.noolite.groups.SensorElement;
 
 /**
  * Activity для отображения списка каналов выбранной группы.
@@ -47,6 +47,8 @@ public class ChannelViewActivity extends Activity implements OnClickListener {
 	private static Intent intent;
 	private UpdateReceiver updateReceiver;
 
+    private GroupElement currentGroup;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -55,73 +57,67 @@ public class ChannelViewActivity extends Activity implements OnClickListener {
 		context = getApplicationContext();
 		//получение вызывавшего Intent
         intent = getIntent();
-		//получение передаваемых в Intent данных
-		ArrayList<Integer> channels = intent
-				.getIntegerArrayListExtra("channels");
-		ArrayList<Integer> sensors = intent.getIntegerArrayListExtra("sensors");
-		groupTitle = intent.getStringExtra("title");
+        int groupId = (int) intent.getLongExtra(BasicDataSource.GROUP_ID, 0);
 
-		//подключение к БД каналов
-		DBManagerChannel dbManager = DBManagerChannel
-				.getInstance(getApplicationContext());
-		dbManager.connect(getApplicationContext());
+        GroupDataSource groupDS = DataSourceManager.getInstance().getGroupDS(getApplicationContext());
+        try {
+            currentGroup  = groupDS.get(groupId);
+            groupTitle = currentGroup.getName();
 
-		//получение всех каналов шлюза
-		try {
-			allChannels = DBManagerChannel.getAll();
+            //получение всех каналов шлюза
+            ChannelsDataSource chds = DataSourceManager.getInstance().getChannelsDS(getApplicationContext());
+            allChannels = chds.getAll();
 
-		} catch (ParseException e) {
-			e.printStackTrace();
-		}
+            //выбор каналов, отображаемых в данной группе
+            //от индекса отнимается 1, т.к. в бинарном файле нумерация каналов в характеристике
+            // групп идет с 1, 0 в той записи означает отсутствие канала
+            ArrayList<ChannelElement> channelsToView = new ArrayList<ChannelElement>();
 
-		//выбор каналов, отображаемых в данной группе
-		//от индекса отнимается 1, т.к. в бинарном файле нумерация каналов в характеристике
-		// групп идет с 1, 0 в той записи означает отсутствие канала
-		ArrayList<ChannelElement> channelsToView = new ArrayList<ChannelElement>();
-		for (Integer i : channels) {
-			if (i != 0) {
-				channelsToView.add(allChannels.get(i - 1));
-			}
-		}
+            for (ChannelElement channelElement : currentGroup.getChannelElements()) {
+                    channelsToView.add(channelElement);
+            }
 
-		//добавление каналов, которые надо отображать
-		int position = 1;
-		for (Integer i : sensors) {
-			if (i != 0) {
-				channelsToView.add(
-				    new ChannelElement(position-1, "Датчик N" + position, 44, 0, 0));
-			}
-			position++;
-		}
+            //добавление каналов, которые надо отображать
+            for (SensorElement sensorElement : currentGroup.getSensorElements()) {
+                channelsToView.add(
+                        new ChannelElement(sensorElement.getId(), sensorElement.getName(), NooLiteDefs.CHANNEL_TYPE_SENSOR, 0, 0));
+            }
 
-		//инициализация списка каналов и его адаптера
-		channelListView = (ListView) findViewById(R.id.lvChannels);
-		Log.d("channelsToView", channelsToView.toString());
-		customAdapter = new ChannelListAdapter(this, channelsToView);
-		channelListView.setAdapter(customAdapter);
+            //инициализация списка каналов и его адаптера
+            channelListView = (ListView) findViewById(R.id.lvChannels);
+            Log.d("channelsToView", channelsToView.toString());
+            customAdapter = new ChannelListAdapter(this, channelsToView);
+            channelListView.setAdapter(customAdapter);
 
-		actionBar = getActionBar();
-		LayoutInflater vi = (LayoutInflater) getApplicationContext()
-				.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-		actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM | ActionBar.DISPLAY_SHOW_HOME);
-		view = vi.inflate(R.layout.action_bar_channel_activity, null);
-		TextView actionBarTitle = (TextView) view
-				.findViewById(R.id.actionBarGroupTitle);
-		actionBarTitle.setText(groupTitle);
+            actionBar = getActionBar();
+            LayoutInflater vi = (LayoutInflater) getApplicationContext()
+                    .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            actionBar.setDisplayOptions(ActionBar.DISPLAY_SHOW_CUSTOM | ActionBar.DISPLAY_SHOW_HOME);
+            view = vi.inflate(R.layout.action_bar_channel_activity, null);
+            TextView actionBarTitle = (TextView) view
+                    .findViewById(R.id.actionBarGroupTitle);
+            actionBarTitle.setText(groupTitle);
 
-		actionBar.setCustomView(view, new LayoutParams(
-				LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
-		actionBar.setDisplayShowHomeEnabled(false);
-		actionBar.setHomeButtonEnabled(false);
-		actionBar.setDisplayShowCustomEnabled(true);
+            actionBar.setCustomView(view, new LayoutParams(
+                    LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+            actionBar.setDisplayShowHomeEnabled(false);
+            actionBar.setHomeButtonEnabled(false);
+            actionBar.setDisplayShowCustomEnabled(true);
 
-		back = (ImageButton) view.findViewById(R.id.backBtnChannels);
-		back.setOnClickListener(this);
+            back = (ImageButton) view.findViewById(R.id.backBtnChannels);
+            back.setOnClickListener(this);
 
 
 // Error: Activity com.noolite.ChannelViewActivity has leaked IntentReceiver receiver.UpdateReceiver@41c80e08 that was originally registered here. Are you missing a call to unregisterReceiver()?
-		updateReceiver = new UpdateReceiver();
-		this.registerReceiver(updateReceiver, new IntentFilter("update"));
+            updateReceiver = new UpdateReceiver();
+            this.registerReceiver(updateReceiver, new IntentFilter("update"));
+
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+
+
 	}
 
 	//возвращение на главное Activity
@@ -157,16 +153,9 @@ public class ChannelViewActivity extends Activity implements OnClickListener {
 		ArrayList<Integer> sensors = intent.getIntegerArrayListExtra("sensors");
 		groupTitle = intent.getStringExtra("title");
 
-		DBManagerChannel dbManager = DBManagerChannel
-				.getInstance(context);
-		dbManager.connect(context);
+		ChannelsDataSource chds = DataSourceManager.getInstance().getChannelsDS(context);
+        allChannels = chds.getAll();
 
-		try {
-			allChannels = DBManagerChannel.getAll();
-
-		} catch (ParseException e) {
-			e.printStackTrace();
-		}
 
 		ArrayList<ChannelElement> channelsToView = new ArrayList<ChannelElement>();
 		for (Integer i : channels) {
@@ -186,14 +175,14 @@ public class ChannelViewActivity extends Activity implements OnClickListener {
 			position++;
 		}
 
-		customAdapter = new ChannelListAdapter(context,
-				channelsToView);
+		customAdapter = new ChannelListAdapter(context,	channelsToView);
 		channelListView.setAdapter(customAdapter);
 	}
 
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
+		DataSourceManager.getInstance().close();
 
 		if (updateReceiver != null) {
 			this.unregisterReceiver(updateReceiver);

@@ -1,14 +1,9 @@
 package com.noolite.db.ds;
 
 import android.content.ContentValues;
-import android.content.Context;
 import android.database.Cursor;
-import android.database.SQLException;
-import android.database.sqlite.SQLiteDatabase;
 
 import com.noolite.channels.ChannelElement;
-import com.noolite.db.NooLiteDB;
-import com.noolite.db.NooLiteDBSettings;
 import com.noolite.groups.GroupElement;
 
 import java.text.ParseException;
@@ -18,79 +13,62 @@ import java.util.ArrayList;
  * Created by urix on 12.04.17.
  */
 
-public class ChannelsDataSource {
+public class ChannelsDataSource extends BasicDataSource {
 
-    private SQLiteDatabase database;
-    private NooLiteDB dbHelper;
-
-    public ChannelsDataSource(Context context) {
-        dbHelper = new NooLiteDB(context);
-    }
-
-    public void open() throws SQLException {
-        database = dbHelper.getWritableDatabase();
-    }
-
-    public void close() {
-        dbHelper.close();
-        database.close();
+    public ChannelsDataSource() {
     }
 
     //добавление нового канала в БД
-    public void add(ChannelElement newChannel) {
-        ContentValues cv;
-        cv = new ContentValues();
-        cv.put(NooLiteDBSettings.ID, newChannel.getId());
-        cv.put(NooLiteDBSettings.NAME, newChannel.getName());
-        cv.put(NooLiteDBSettings.TYPE, newChannel.getType());
-        cv.put(NooLiteDBSettings.STATE, newChannel.getState());
-        cv.put(NooLiteDBSettings.PREVIOUS_STATE, newChannel.getPreviousState());
-
-        //проведение транзакции добавления значений
-        database.beginTransaction();
-        database.insert("channels", null, cv);
-        database.setTransactionSuccessful();
-        database.endTransaction();
+    public synchronized void add(ChannelElement channel) {
+        ContentValues cv = new ContentValues();
+        cv.put(ID, channel.getId());
+        cv.put(NAME, channel.getName());
+        cv.put(TYPE, channel.getType());
+        cv.put(STATE, channel.getState());
+        cv.put(PREVIOUS_STATE, channel.getPreviousState());
+        getDatabase().insert(TABLE_CHANNEL, null, cv);
         cv.clear();
     }
 
     //обновление значений записи в БД с индексом newChannel.getId()
-    public void update(ChannelElement newChannel) {
+    public synchronized void update(ChannelElement newChannel) {
         ContentValues cv = new ContentValues();
-        cv.put(NooLiteDBSettings.ID, newChannel.getId());
-        cv.put(NooLiteDBSettings.NAME, newChannel.getName());
-        cv.put(NooLiteDBSettings.TYPE, newChannel.getType());
-        cv.put(NooLiteDBSettings.STATE, newChannel.getState());
-        cv.put(NooLiteDBSettings.PREVIOUS_STATE, newChannel.getPreviousState());
-        database.update(NooLiteDBSettings.TABLE_CHANNELS, cv,
+        cv.put(ID, newChannel.getId());
+        cv.put(NAME, newChannel.getName());
+        cv.put(TYPE, newChannel.getType());
+        cv.put(STATE, newChannel.getState());
+        cv.put(PREVIOUS_STATE, newChannel.getPreviousState());
+        getDatabase().update(TABLE_CHANNEL, cv,
                 "id = '" + newChannel.getId() + "'", null);
     }
 
     //удаление записи из БД по id элемента
-    public void delete(GroupElement notification) {
-        database.delete(NooLiteDBSettings.TABLE_CHANNELS,
-                "id = " + String.valueOf(notification.getId()), null);
+    public synchronized void delete(GroupElement notification) {
+        getDatabase().delete(TABLE_CHANNEL, "id = " + String.valueOf(notification.getId()), null);
     }
 
     //удаление всех записей в БД
-    public void deleteAll() {
-        database.delete(NooLiteDBSettings.TABLE_CHANNELS,null, null);
+    public synchronized void deleteAll() {
+        getDatabase().beginTransaction();
+        getDatabase().delete(TABLE_GROUP_CHANNEL,null, null);
+        getDatabase().delete(TABLE_CHANNEL,null, null);
+        getDatabase().setTransactionSuccessful();
+        getDatabase().endTransaction();
     }
 
     //чтение всех записей из БД
-    public ArrayList<ChannelElement> getAll()
-            throws ParseException {
+    public ArrayList<ChannelElement> getAll() {
         ArrayList<ChannelElement> listOfAllChannels = new ArrayList<ChannelElement>();
-        Cursor c = database.query(NooLiteDBSettings.TABLE_CHANNELS, null, null, null,
+        Cursor c = getDatabase().query(TABLE_CHANNEL, null, null, null,
                 null, null, null);
 
         if (c.moveToFirst()) {
-            int idColumn = c.getColumnIndex(NooLiteDBSettings.ID);
-            int nameColumn = c.getColumnIndex(NooLiteDBSettings.NAME);
-            int typeColumn = c.getColumnIndex(NooLiteDBSettings.TYPE);
-            int stateColumn = c.getColumnIndex(NooLiteDBSettings.STATE);
+            int idColumn = c.getColumnIndex(ID);
+            int nameColumn = c.getColumnIndex(NAME);
+            int typeColumn = c.getColumnIndex(TYPE);
+            int stateColumn = c.getColumnIndex(STATE);
             int previousStateColumn = c
-                    .getColumnIndex(NooLiteDBSettings.PREVIOUS_STATE);
+                    .getColumnIndex(PREVIOUS_STATE);
 
             do {
                 int currentId = c.getInt(idColumn);
@@ -107,5 +85,16 @@ public class ChannelsDataSource {
         c.close();
 
         return listOfAllChannels;
+    }
+
+    public synchronized void boundChannel(GroupElement group, ChannelElement channel) {
+        boundChannel(group.getId(), channel.getId());
+    }
+
+    public synchronized void boundChannel(int groupId, int channelId) {
+        ContentValues cv = new ContentValues();
+        cv.put(GROUP_ID, groupId);
+        cv.put(CHANNEL_ID, channelId);
+        getDatabase().insert(TABLE_GROUP_CHANNEL, null, cv);
     }
 }

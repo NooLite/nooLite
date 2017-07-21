@@ -16,7 +16,7 @@ public class UpdateReceiver extends BroadcastReceiver{
 	public void onReceive(Context context, Intent intent) {
 		try{
 			ChannelViewActivity.updateList();
-		}catch (Exception e) {
+		} catch (Exception e) {
 
 		}
 	}
