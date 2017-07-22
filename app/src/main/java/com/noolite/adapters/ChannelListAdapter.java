@@ -57,8 +57,7 @@ public class ChannelListAdapter extends BaseAdapter implements
 	public ChannelListAdapter(Context context, ArrayList<ChannelElement> list) {
 		this.context = context;
 		this.list = list;
-		inflater = (LayoutInflater) context
-				.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+		inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		checked = new boolean[list.size()];
 
 	}
@@ -306,12 +305,7 @@ public class ChannelListAdapter extends BaseAdapter implements
 		int tag = (Integer)seekBar.getTag();
 		//получение текущего объекта канала
 		ChannelElement current = (ChannelElement) getItem(tag);
-
-        RequestTask requestTask = new RequestTask(new RequestInterface() {
-			@Override
-			public void callBack() {
-			}
-		});
+        RequestTask requestTask = new RequestTask(context);
 
 		//строка запроса на шлюз
 //        String url = "http://" + SettingsValues.getIP() + "/api.htm?ch="
@@ -361,12 +355,7 @@ public class ChannelListAdapter extends BaseAdapter implements
 		//получение текущего объекта канала
 		ChannelElement current = (ChannelElement) getItem(tag);
 		checked[tag] = buttonView.isChecked();
-
-        RequestTask  requestTask = new RequestTask(new RequestInterface() {
-			@Override
-			public void callBack() {
-			}
-		});
+        RequestTask  requestTask = new RequestTask(context);
         int cmd = 0;
 
 		if (isChecked) {
@@ -387,8 +376,7 @@ public class ChannelListAdapter extends BaseAdapter implements
 		//воспроизведение звука
 		v.setSoundEffectsEnabled(true);
 		if (SettingsValues.getSound()) {
-			Uri path = Uri.parse("android.resource://"
-					+ context.getPackageName() + "/" + R.raw.sound);
+			Uri path = Uri.parse("android.resource://" + context.getPackageName() + "/" + R.raw.sound);
 			MediaPlayer mp = MediaPlayer.create(context, path);
 			mp.start();
 		}
@@ -396,13 +384,7 @@ public class ChannelListAdapter extends BaseAdapter implements
 		//получение текущего элемента списка каналов
 		int tag = (Integer)v.getTag();
 		ChannelElement current = (ChannelElement) getItem(tag);
-
-        RequestTask requestTask = new RequestTask(new RequestInterface() {
-			@Override
-			public void callBack() {
-			}
-		});
-//		String url = new String();
+        RequestTask requestTask = new RequestTask(context);
 
 		//по id компонентов UI выбираем необходимую кнопку
 		switch (v.getId()) {

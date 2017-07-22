@@ -1,5 +1,6 @@
 package com.noolite.parsers;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -24,14 +25,14 @@ public class XMLParser {
     public static final String TAG_HEADER = "response";
 
 
-	public static void parse(Context context, InputStream in) {
+	public static void parse(byte[] sensorData) {
 
 		try {
-
 			XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
 			factory.setNamespaceAware(true);
 			XmlPullParser xpp = factory.newPullParser();
-			xpp.setInput(in, "cp1251");
+            ByteArrayInputStream is = new ByteArrayInputStream(sensorData);
+			xpp.setInput(is, "cp1251");
 			ArrayList<String> sensorValues = new ArrayList<String>();
 
             List<SensorData> sensorDataList = new ArrayList<SensorData>();

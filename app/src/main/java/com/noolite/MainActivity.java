@@ -8,7 +8,6 @@ import java.io.InputStream;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import android.app.ActionBar;
 import android.app.AlertDialog;
@@ -31,6 +30,7 @@ import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.getpebble.android.kit.PebbleKit;
 import com.noolite.adapters.CustomListAdapter;
 import com.noolite.asynctask.DownloadInterface;
 import com.noolite.asynctask.DownloadXMLTask;
@@ -45,18 +45,14 @@ import com.noolite.parsers.XMLParser;
 import com.noolite.pebble.PebbleManager;
 import com.noolite.settings.SettingsValues;
 
+import receiver.DataReceiver;
+
 //начальное Activity приложения
 public class MainActivity extends Activity implements OnItemClickListener,
 		OnClickListener {
 
 	private ArrayList<GroupElement> groups = new ArrayList<GroupElement>(); //список отображаемых групп
 
-	//private DBManagerGroup dbManager; //обьект-синглтон для работы с бд
-//	private Intent intent;
-
-	//элементы UI приложения
-//	private ActionBar actionBar;
-//	private View view;
 	private ImageButton settingsBtn, timerButton;
 	private ListView groupListView;
 
@@ -75,6 +71,7 @@ public class MainActivity extends Activity implements OnItemClickListener,
 		//регистрация обработчика получения сообщений с pebble
 		if(pm==null){
 			pm = new PebbleManager(getApplicationContext());
+//            PebbleKit.registerReceivedDataHandler(this, new DataReceiver());
 // Compilation Error
 //			pm.registerReceivedDataHandler();
 		}
@@ -110,11 +107,10 @@ public class MainActivity extends Activity implements OnItemClickListener,
 
         //проверка на необходимость показа демо-версии
 		//при необходимости БД инициализируется значениями для демо-режима
-		if(SettingsValues.getDemo()){
+		if (SettingsValues.getDemo()) {
 			if(isJustStarted){
 				showWarningDialog();
-				SharedPreferences.Editor edit = MainActivity
-						.getSharedPref().edit();
+				SharedPreferences.Editor edit = MainActivity.getSharedPref().edit();
 				edit.putBoolean("dialogShow", false);
 				edit.commit();
 			}
@@ -132,9 +128,12 @@ public class MainActivity extends Activity implements OnItemClickListener,
 			}
 		} else {
 			SharedPreferences.Editor edit = MainActivity.getSharedPref().edit();
-			edit.putBoolean("demo", false);
+			edit.putBoolean(NooLiteDefs.FLAG_DEMO, false);
 			edit.commit();
 			SettingsValues.setDemo(false);
+
+            DownloadXMLTask dt = new DownloadXMLTask();
+            dt.execute(UrlUtils.getSensorUrl());
 		}		
 
 		//связь списка и его адаптера
@@ -171,32 +170,6 @@ public class MainActivity extends Activity implements OnItemClickListener,
             }
         });
 */
-
-		//скачивание xml
-		DownloadXMLTask dt = new DownloadXMLTask(new DownloadInterface() {
-			@Override
-			public void callBackDownload() {
-				
-			}
-		});
-
-		dt.execute("http://" + SettingsValues.getIP() + "/sens.xml");
-		
-		InputStream in = null;
-		try {
-			in = new FileInputStream(new File(Environment.getExternalStorageDirectory().getPath()+"/nooLite/sens.xml"));
-			XMLParser.parse(getApplicationContext(), in);
-		} catch (FileNotFoundException e1) {
-			e1.printStackTrace();
-		} finally {
-			if (in != null) {
-				try {
-					in.close();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			}
-		}
 	}
 
 	//диалог-предупреждение о демо-режиме
@@ -328,12 +301,6 @@ public class MainActivity extends Activity implements OnItemClickListener,
 
     @Override
     protected void onStart() {
-
-
         super.onStart();
     }
-
-
-
-
 }

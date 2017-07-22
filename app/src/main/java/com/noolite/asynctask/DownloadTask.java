@@ -1,22 +1,15 @@
 package com.noolite.asynctask;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 
-import org.apache.http.params.HttpConnectionParams;
-
+import com.noolite.AppException;
+import com.noolite.NooDialogUtils;
+import com.noolite.ResultType;
 import com.noolite.MainActivity;
 import com.noolite.NooLiteDefs;
 import com.noolite.R;
@@ -27,30 +20,18 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
-import android.os.Environment;
-import android.os.Handler;
 import android.util.Base64;
-import android.util.Base64InputStream;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
-public class DownloadTask extends AsyncTask<String, Void, Integer> {
+public class DownloadTask extends AsyncTask<String, Void, ResultType> {
     private ProgressDialog dialog;
-    private String TAG = "DownloadTask";
+    private String TAG = DownloadTask.class.getSimpleName();
     private Activity context;
-
-    private WeakReference<DownloadInterface> weakReferenceDownloadInterface;
-
-    public DownloadTask(DownloadInterface downloadInterface) {
-        this.weakReferenceDownloadInterface = new WeakReference<DownloadInterface>(
-                downloadInterface);
-    }
 
     public DownloadTask(Activity ctx) {
         this.context = ctx;
@@ -68,125 +49,106 @@ public class DownloadTask extends AsyncTask<String, Void, Integer> {
     }
 
     @Override
-    protected void onPostExecute(Integer integer) {
-        Log.d(NooLiteDefs.NOO_LOG, "DownloadTask : onPostExecute");
-        super.onPostExecute(integer);
+    protected void onPostExecute(ResultType result) {
+        Log.d(TAG, "result = " + result);
+        super.onPostExecute(result);
 
         if (dialog.isShowing()) {
             dialog.dismiss();
         }
 
-//        makeDialog("Ошибка подключения к адресу, проверьте соединение с Wi-Fi или IP адрес");
-
-        makeDialog("Данные успешно загружены");
-        SettingsValues.setDemo(false);
-        SharedPreferences.Editor edit = MainActivity.getSharedPref().edit();
-        edit.putBoolean(NooLiteDefs.FLAG_DEMO, false);
-        edit.commit();
+        if (ResultType.SUCCESS_RESULT.equals(result)) {
+            NooDialogUtils.makeDialog("Данные успешно загружены", context);
+            // finalize DEMO mode
+            SettingsValues.setDemo(false);
+            SharedPreferences.Editor edit = MainActivity.getSharedPref().edit();
+            edit.putBoolean(NooLiteDefs.FLAG_DEMO, false);
+            edit.commit();
+        } else {
+            NooDialogUtils.makeDialog(result.getDescription(), context);
+        }
     }
 
-    //отображение диалогового окна с текстом, передающемся в параметре str
-    public void makeDialog(String str) {
-        final AlertDialog.Builder adb = new AlertDialog.Builder(context);
-        View view = (LinearLayout) context.getLayoutInflater().inflate(R.layout.dialog, null);
-        adb.setView(view);
-        TextView msg = (TextView) view.findViewById(R.id.message);
-        msg.setText(str);
-        Button btnOk = (Button) view.findViewById(R.id.okDialogButton);
-        final Dialog alertDialog = adb.create();
-        alertDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
-        btnOk.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                alertDialog.dismiss();
-            }
-        });
-        alertDialog.show();
-    }
-
-    //запрос на скачивание бинарного файла с параметрами групп-каналов по адресу url[0]
+    /**
+     * Download Geaway config binary data.
+     * Parse it and store to DB.
+     *
+     * @param url Geaway address
+     * @return code result
+     */
     @Override
-    protected Integer doInBackground(String... url) {
+    protected ResultType doInBackground(String... url) {
         Log.d(TAG, "loading gateway config: " + url[0]);
 
         try {
-            byte[] fileData = loadGatewayData(url[0]);
-            update();
-        } catch (IOException ex) {
+            byte[] gatewayData = loadGatewayData(url[0]);
+            BinParser.parseData(gatewayData, context);
+
+        } catch (AppException ex) {
+            return ex.getResultType();
+
+        } catch (Exception ex) {
             Log.e(TAG, "loading gateway config", ex);
-            return 1;
+            return ResultType.INTERNAL_ERROR;
         }
-        return 0;
-
-
+        return ResultType.SUCCESS_RESULT;
     }
 
-    private byte[] loadGatewayData(String url) throws IOException {
-        URL u = new URL(url);
-        String username = SettingsValues.getUsername();
-        String password = SettingsValues.getPassword();
-        String userPassword = username + ":" + password;
-        byte[] data = userPassword.getBytes("UTF-8");
-        String encoding = Base64.encodeToString(data, Base64.DEFAULT);
-        HttpURLConnection c = (HttpURLConnection) u.openConnection();
-        c.setConnectTimeout(20000);
-        c.setReadTimeout(20000);
-        c.setRequestMethod("GET");
-        //добавление параметров аутентификации в заголовок
-        if (SettingsValues.getAuth()) {
-            c.addRequestProperty("Authorization", "Basic " + encoding);
+    private byte[] loadGatewayData(String url) throws AppException {
+        byte[] buffer = new byte[NooLiteDefs.GATEWAY_DATA_SIZE];
+        HttpURLConnection connection;
+
+        try {
+            URL  u = new URL(url);
+            String username = SettingsValues.getUsername();
+            String password = SettingsValues.getPassword();
+            String userPassword = username + ":" + password;
+            byte[] data = userPassword.getBytes("UTF-8");
+
+            String encoding = Base64.encodeToString(data, Base64.DEFAULT);
+            connection = (HttpURLConnection) u.openConnection();
+            //добавление параметров аутентификации в заголовок
+            if (SettingsValues.getAuth()) {
+                connection.addRequestProperty("Authorization", "Basic " + encoding);
+            }
+            connection.setConnectTimeout(20000);
+            connection.setReadTimeout(20000);
+            connection.setRequestMethod("GET");
+            connection.setDoOutput(true);
+            connection.connect();
+
+        } catch (MalformedURLException ex) {
+            Log.e(TAG, "URL object", ex);
+            throw new AppException(ResultType.URL_ERROR);
+
+        } catch (UnsupportedEncodingException ex) {
+            Log.e(TAG, "UTF-8 Encoding", ex);
+            throw new AppException(ResultType.UNSUPPORTED_ENCODING);
+
+        } catch (IOException e) {
+            Log.e(TAG, "HttpURLConnection ", e);
+            throw new AppException(ResultType.CONNECTION_ERROR);
         }
-        c.setDoOutput(true);
-        c.connect();
+        DataInputStream dis = null;
 
-        //проверка сузествования файла для записи
-        File myDirectory = new File(
-                Environment.getExternalStorageDirectory().getPath(), NooLiteDefs.NOO_LITE);
-        if (!myDirectory.exists()) {
-            myDirectory.mkdirs();
+        try {
+            dis = new DataInputStream(connection.getInputStream());
+            dis.readFully(buffer);
+
+        } catch (IOException e) {
+            Log.e(TAG, "DataInputStream ", e);
+            throw new AppException(ResultType.READ_ERROR);
+
+        } finally {
+            if (dis != null) {
+                try {
+                    dis.close();
+                } catch (IOException e) {
+                    Log.e(TAG, "InputStream closing ", e);
+                }
+            }
+            connection.disconnect();
         }
-        //определение потока вывода
-        FileOutputStream f = new FileOutputStream(
-                new File(Environment.getExternalStorageDirectory().getPath() +
-                        "/" + NooLiteDefs.NOO_LITE,
-                        NooLiteDefs.NOO_SETTINGS_BIN));
-
-        //определение потока ввода
-        BufferedInputStream in = new BufferedInputStream(c.getInputStream());
-        byte[] buffer = new byte[4102];
-        int len1;
-        int size = 0;
-
-        while ((len1 = in.read(buffer)) > 0) {
-            f.write(buffer, 0, len1);
-            size += len1;
-        }
-        Log.d(NooLiteDefs.NOO_LOG, "data size=" + size);
-        f.close();
-        in.close();
-
-//        BinParser binParse = new BinParser(buffer, context);
-//        binParse.parceData();
-
         return buffer;
     }
-
-    private void update() throws IOException {
-        Log.d(TAG, "DataBase updating");
-
-        String FILEPATH = Environment.getExternalStorageDirectory()
-                .getPath() + "/nooLite/noolite_settings.bin";
-
-        File file = new File(FILEPATH);
-        byte[] fileData = new byte[(int) file.length()];
-
-        DataInputStream dis = new DataInputStream(new FileInputStream(file));
-        dis.readFully(fileData);
-        dis.close();
-        BinParser binParse = new BinParser(fileData, context);
-        binParse.parceData();
-
-    }
-
-
 }

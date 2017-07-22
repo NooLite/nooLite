@@ -14,7 +14,7 @@ public class UrlUtils {
     private static String FM = "&fm=";
     private static String BR = "&br=";
 
-    public static String getSettingsUrl() {
+    public static String getGatewaySettingsUrl() {
         return new StringBuilder(PROTOCOL)
                 .append(SettingsValues.getIP())
                 .append("/")
@@ -61,8 +61,14 @@ public class UrlUtils {
         return new StringBuilder(getCmdUrl(ch, cmd))
                 .append(BR).append(br)
                 .toString();
+    }
 
-
+    public static String getSensorUrl() {
+        return new StringBuilder(PROTOCOL)
+                .append(SettingsValues.getIP())
+                .append("/")
+                .append(NooLiteDefs.NOO_SENSOR_DATA)
+                .toString();
     }
 
 

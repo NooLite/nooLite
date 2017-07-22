@@ -6,34 +6,60 @@ import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import com.noolite.MainActivity;
+import com.noolite.NooDialogUtils;
+import com.noolite.NooLiteDefs;
+import com.noolite.ResultType;
 import com.noolite.SettingsActivity;
 import com.noolite.settings.SettingsValues;
 
+import android.app.Activity;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.util.Base64;
 import android.util.Log;
 
-public class RequestTask extends AsyncTask<String, Void, Integer> {
+public class RequestTask extends AsyncTask<String, Void, ResultType> {
     private String TAG = RequestTask.class.getSimpleName();
+    private Context context;
 
 	
-	private WeakReference<RequestInterface> weakReferenceRequestInterface;
+//	private WeakReference<RequestInterface> weakReferenceRequestInterface;
 
-	
-	public RequestTask(RequestInterface requestInterface) {
-		this.weakReferenceRequestInterface = new WeakReference<RequestInterface>(
-				requestInterface);
+	public RequestTask(Context ctx) {
+		super();
+        this.context = ctx;
+
 	}
+
+//	public RequestTask(RequestInterface requestInterface) {
+//		super();
+//		this.weakReferenceRequestInterface = new WeakReference<RequestInterface>(
+//				requestInterface);
+//	}
 	
 	@Override
 	protected void onPreExecute() {
 		super.onPreExecute();
 	}
 
+    @Override
+    protected void onPostExecute(ResultType result) {
+        Log.d(TAG, "result = " + result);
+        super.onPostExecute(result);
+
+        if (ResultType.SUCCESS_RESULT.equals(result)) {
+
+        } else {
+            NooDialogUtils.makeDialog(result.getDescription(), context);
+        }
+    }
+
 
 	//отправка запроса на шлюз по адресу url[0]
 	@Override
-	protected Integer doInBackground(String... url) {
+	protected ResultType doInBackground(String... url) {
 		try{
 			Log.d(TAG, url[0]);
 			URL obj = new URL(url[0]);
@@ -60,11 +86,11 @@ public class RequestTask extends AsyncTask<String, Void, Integer> {
 			}
 			in.close();
 	
-		}catch(Exception ex){
+		} catch (Exception ex){
 			Log.e(TAG, "send RQ to gate", ex);
-			return 1;
+			return ResultType.CONNECTION_ERROR;
 		}
-		return 0;
+		return ResultType.SUCCESS_RESULT;
 	}
 
 }

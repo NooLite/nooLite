@@ -27,8 +27,7 @@ import com.noolite.settings.SettingsValues;
 public class PebbleManager extends BroadcastReceiver {
 
 	// UUID приложения
-	private final static UUID APP_UUID = UUID
-			.fromString("1151b807-682b-46c2-a945-1707516fce6f");
+	private final static UUID APP_UUID = UUID.fromString("1151b807-682b-46c2-a945-1707516fce6f");
 
 	// ключи для словаря
 	private final int GROUPE_NAME_KEY = 34;
@@ -84,13 +83,11 @@ public class PebbleManager extends BroadcastReceiver {
 			groups = groupDS.getAll();
 			//получение комеров каналов из текущей группы
 			ArrayList<Integer> indexesOfChannelsInGroup = new ArrayList<Integer>();
-			for (Integer i : groups.get(Values.indexOfCurrentGroup - 1)
-					.getChannels()) {
+			for (Integer i : groups.get(Values.indexOfCurrentGroup - 1).getChannels()) {
 				indexesOfChannelsInGroup.add(i);
 			}
 
-			Values.totalCountOfChannels = groups
-					.get(Values.indexOfCurrentGroup - 1).getChannels().size();
+			Values.totalCountOfChannels = groups.get(Values.indexOfCurrentGroup - 1).getChannels().size();
 
 			List<Integer> sensorsToView = new ArrayList<Integer>();
             List<SensorElement> sensors = groups.get(Values.indexOfCurrentGroup - 1).getSensorElements();
@@ -135,14 +132,12 @@ public class PebbleManager extends BroadcastReceiver {
 				channels = channelDS.getAll();
 
 				//добавление информации о имени группы
-				data.addString(GROUPE_NAME_KEY,
-						groups.get(Values.indexOfCurrentGroup - 1).getName());
+				data.addString(GROUPE_NAME_KEY,	groups.get(Values.indexOfCurrentGroup - 1).getName());
 				//добавление информации о имени канала
 				data.addString(
-						CHANNEL_NAME_KEY,
+				        CHANNEL_NAME_KEY,
 						channels.get(
-								indexesOfChannelsInGroup
-										.get(Values.indexOfCurrentChannel - 1) - 1)
+								indexesOfChannelsInGroup.get(Values.indexOfCurrentChannel - 1) - 1)
 								.getName());
 
 				//довавление информации о типе канала
@@ -223,13 +218,7 @@ public class PebbleManager extends BroadcastReceiver {
 			//включение-выключение канала
 
 			//создание Asynctask для передачи команды
-			RequestTask requestTask = new RequestTask(new RequestInterface() {
-
-				@Override
-				public void callBack() {
-
-				}
-			});
+			RequestTask requestTask = new RequestTask(context);
 
 //			DBManagerGroup dmGroup = DBManagerGroup.getInstance(context);
 //			dmGroup.connect(context);
@@ -295,13 +284,7 @@ public class PebbleManager extends BroadcastReceiver {
 		if (commandCode.equals(DIMMED)) {
 			//переключение диммированного канала
 
-			RequestTask requestTask = new RequestTask(new RequestInterface() {
-
-				@Override
-				public void callBack() {
-
-				}
-			});
+			RequestTask requestTask = new RequestTask(context);
 
 //			DBManagerGroup dmGroup = DBManagerGroup.getInstance(context);
 //			dmGroup.connect(context);
@@ -342,13 +325,7 @@ public class PebbleManager extends BroadcastReceiver {
 
 		//перелив цвета диодов
 		if (commandCode.equals(START_OVERFLOW)) {
-			RequestTask requestTask = new RequestTask(new RequestInterface() {
-
-				@Override
-				public void callBack() {
-
-				}
-			});
+			RequestTask requestTask = new RequestTask(context);
 			groups = groupDS.getAll();
 			GroupElement currentGroup = groups
 					.get(Values.indexOfCurrentGroup - 1);
@@ -366,13 +343,7 @@ public class PebbleManager extends BroadcastReceiver {
 
 		//окончание перелива цвета диодов
 		if (commandCode.equals(STOP_OVERFLOW)) {
-			RequestTask requestTask = new RequestTask(new RequestInterface() {
-
-				@Override
-				public void callBack() {
-
-				}
-			});
+			RequestTask requestTask = new RequestTask(context);
 			groups = groupDS.getAll();
 			GroupElement currentGroup = groups
 					.get(Values.indexOfCurrentGroup - 1);

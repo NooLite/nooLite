@@ -1,10 +1,5 @@
 package com.noolite;
 
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.UnsupportedEncodingException;
-
 import android.app.ActionBar;
 import android.app.ActionBar.LayoutParams;
 import android.app.Activity;
@@ -15,7 +10,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Environment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -23,15 +17,9 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 
-import com.noolite.asynctask.DownloadInterface;
 import com.noolite.asynctask.DownloadTask;
-import com.noolite.db.ds.ChannelsDataSource;
-import com.noolite.db.ds.DataSourceManager;
-import com.noolite.db.ds.GroupDataSource;
-import com.noolite.parsers.BinParser;
 import com.noolite.settings.SettingsValues;
 
 //настройки приложения
@@ -180,7 +168,7 @@ public class SettingsActivity extends Activity implements OnClickListener {
 			edit.putBoolean("auth", needAuthentification.isChecked());
 			edit.commit();
             DownloadTask dt = new DownloadTask(this);
-            dt.execute(UrlUtils.getSettingsUrl());
+            dt.execute(UrlUtils.getGatewaySettingsUrl());
 			break;
 
 		//возврат на Activity с меню настроек по нажатии на кнопку "назад"

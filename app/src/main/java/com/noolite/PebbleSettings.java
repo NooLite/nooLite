@@ -70,8 +70,7 @@ public class PebbleSettings extends Activity{
 				
 				if(SettingsValues.isWatchesEnabled()){
 					pebbleEnabled.setImageResource(R.drawable.unselected);
-					SharedPreferences.Editor edit = MainActivity.getSharedPref()
-							.edit();
+					SharedPreferences.Editor edit = MainActivity.getSharedPref().edit();
 					edit.putBoolean("watches", false);
 					SettingsValues.setUseWatches(false);
 					edit.commit();
