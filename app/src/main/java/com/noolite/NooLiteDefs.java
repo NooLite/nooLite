@@ -13,6 +13,7 @@ public class NooLiteDefs {
 
 
     public static final int CHANNEL_TYPE_SENSOR = 44;
+    public static final int CHANNEL_TYPE_OPEN_CLOSE = 4;
     public static final int GATEWAY_DATA_SIZE = 4102;
     public static final int SENSOR_DATA_SIZE = 4096;
 

@@ -88,7 +88,8 @@ public class MainActivity extends Activity implements OnItemClickListener,
 		//получение системных настроек приложения
 		sharedPref = this.getPreferences(Context.MODE_PRIVATE);
 		SettingsValues.setSound(sharedPref.getBoolean(getString(R.string.play_sound), true));
-		SettingsValues.setIP(sharedPref.getString("IP", "192.168.0.168:8080"));
+		SettingsValues.setIP(sharedPref.getString("IP", "192.168.0.168"));
+//		SettingsValues.setIP(sharedPref.getString("IP", "192.168.0.168:8080"));
 		SettingsValues.setPassword(sharedPref.getString("password", ""));
 		SettingsValues.setUsername(sharedPref.getString("username", ""));
 		SettingsValues.setAuth(sharedPref.getBoolean("auth", true));

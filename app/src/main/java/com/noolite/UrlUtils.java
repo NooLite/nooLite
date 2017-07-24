@@ -14,6 +14,11 @@ public class UrlUtils {
     private static String FM = "&fm=";
     private static String BR = "&br=";
 
+    public static String getPingUrl() {
+        return new StringBuilder(PROTOCOL)
+                .append(SettingsValues.getIP()).toString();
+    }
+
     public static String getGatewaySettingsUrl() {
         return new StringBuilder(PROTOCOL)
                 .append(SettingsValues.getIP())

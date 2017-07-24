@@ -14,6 +14,7 @@ import com.noolite.SettingsActivity;
 import com.noolite.settings.SettingsValues;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
@@ -23,6 +24,7 @@ import android.util.Log;
 public class RequestTask extends AsyncTask<String, Void, ResultType> {
     private String TAG = RequestTask.class.getSimpleName();
     private Context context;
+	private ProgressDialog dialog;
 
 	
 //	private WeakReference<RequestInterface> weakReferenceRequestInterface;
@@ -30,6 +32,7 @@ public class RequestTask extends AsyncTask<String, Void, ResultType> {
 	public RequestTask(Context ctx) {
 		super();
         this.context = ctx;
+		this.dialog = new ProgressDialog(ctx);
 
 	}
 
@@ -42,6 +45,11 @@ public class RequestTask extends AsyncTask<String, Void, ResultType> {
 	@Override
 	protected void onPreExecute() {
 		super.onPreExecute();
+//		dialog.setMessage("отправка команды ...");
+//		dialog.setIndeterminate(true);
+//		dialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+//		dialog.setCancelable(false);
+//		dialog.show();
 	}
 
     @Override
@@ -49,9 +57,10 @@ public class RequestTask extends AsyncTask<String, Void, ResultType> {
         Log.d(TAG, "result = " + result);
         super.onPostExecute(result);
 
-        if (ResultType.SUCCESS_RESULT.equals(result)) {
-
-        } else {
+//        if (dialog.isShowing()) {
+//            dialog.dismiss();
+//        }
+        if (!ResultType.SUCCESS_RESULT.equals(result) && !SettingsValues.getDemo()) {
             NooDialogUtils.makeDialog(result.getDescription(), context);
         }
     }

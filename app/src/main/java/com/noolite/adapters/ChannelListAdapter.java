@@ -2,6 +2,7 @@ package com.noolite.adapters;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
@@ -10,6 +11,7 @@ import android.graphics.PorterDuff.Mode;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -26,7 +28,9 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 
 import com.noolite.NooLiteDefs;
+import com.noolite.PingUtil;
 import com.noolite.R;
+import com.noolite.ResultType;
 import com.noolite.UrlUtils;
 import com.noolite.asynctask.RequestInterface;
 import com.noolite.asynctask.RequestTask;
@@ -40,7 +44,7 @@ import com.noolite.settings.SettingsValues;
 //адаптер для конфигурации UI списка каналов
 public class ChannelListAdapter extends BaseAdapter implements
 		OnSeekBarChangeListener, OnCheckedChangeListener, OnClickListener {
-
+    private String TAG = ChannelListAdapter.class.getSimpleName();
 	private Context context;  //текущий Context приложения
 	private ArrayList<ChannelElement> list;  //список каналов, на основе которого строится UI
 	private LayoutInflater inflater;  //LayoutInflater для подгрузки View
@@ -60,7 +64,11 @@ public class ChannelListAdapter extends BaseAdapter implements
 		inflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 		checked = new boolean[list.size()];
 
+//        PingUtil.ping(context);
+
 	}
+
+
 
 	@Override
 	public int getCount() {
@@ -228,7 +236,7 @@ public class ChannelListAdapter extends BaseAdapter implements
 				seekBar.setProgress(newChannel.getState());
 			}
 			break;
-		case 4:
+		case NooLiteDefs.CHANNEL_TYPE_OPEN_CLOSE:
             // Open/Close
             customView.findViewById(R.id.openCloseChannel).setVisibility(View.VISIBLE);
             TextView title = (TextView) customView.findViewById(R.id.openCloseTitle);
@@ -351,7 +359,7 @@ public class ChannelListAdapter extends BaseAdapter implements
 	//обработка событий включения-выключения канала
 	@Override
 	public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-		int tag = (Integer)buttonView.getTag();
+		int tag = (Integer) buttonView.getTag();
 		//получение текущего объекта канала
 		ChannelElement current = (ChannelElement) getItem(tag);
 		checked[tag] = buttonView.isChecked();
@@ -464,27 +472,22 @@ public class ChannelListAdapter extends BaseAdapter implements
 			break;
 		case R.id.simpleChannelSwitch:
 			//включение-выключение в обычном канале
-			checked[tag] = !checked[tag];
             int cmd = 0;
+            checked[tag] = !checked[tag];
 
-			if (checked[tag]) {
-                cmd = 2;
-//				url = "http://" + SettingsValues.getIP() + "/api.htm?ch="
-//						+ (current.getId() - 1) + "&cmd=2";
-				ImageButton btn = (ImageButton) v;
-				btn.setImageResource(R.drawable.selected);
-				current.setState(255);
-				channelDS.update(current);
-			} else {
-                cmd = 0;
-//				url = "http://" + SettingsValues.getIP() + "/api.htm?ch="
-//						+ (current.getId() - 1) + "&cmd=0";
-				ImageButton btn = (ImageButton) v;
-				btn.setImageResource(R.drawable.unselected);
-				current.setState(0);
-				channelDS.update(current);
-			}
-			requestTask.execute(UrlUtils.getCmdUrl(current.getId() - 1, cmd));
+            if (checked[tag]) {
+				cmd = 2;
+                ImageButton btn = (ImageButton) v;
+                btn.setImageResource(R.drawable.selected);
+                current.setState(255);
+                channelDS.update(current);
+            } else {
+                ImageButton btn = (ImageButton) v;
+                btn.setImageResource(R.drawable.unselected);
+                current.setState(0);
+                channelDS.update(current);
+            }
+            requestTask.execute(UrlUtils.getCmdUrl(current.getId() - 1, cmd));
 			break;
 
 		case R.id.dimmedChannelSwitch:
@@ -530,7 +533,6 @@ public class ChannelListAdapter extends BaseAdapter implements
 			break;
 
         case R.id.openCloseSave:
-            //http://192.168.0.168:8080/api.htm?ch=0&cmd=8&br=0
             requestTask.execute(UrlUtils.getBarUrl(current.getId() - 1, 8, 0));
 		}
 	}
