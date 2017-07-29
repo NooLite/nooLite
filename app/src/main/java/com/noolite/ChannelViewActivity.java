@@ -2,6 +2,7 @@ package com.noolite;
 
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.List;
 
 import receiver.UpdateReceiver;
 
@@ -45,7 +46,7 @@ public class ChannelViewActivity extends Activity implements OnClickListener {
 	private static Context context;
     //Intent, который вызывал открытие этого Activity и в котором передавались данные
 	private static Intent intent;
-	private UpdateReceiver updateReceiver;
+//	private UpdateReceiver updateReceiver;
 
     private GroupElement currentGroup;
 
@@ -71,11 +72,9 @@ public class ChannelViewActivity extends Activity implements OnClickListener {
             //выбор каналов, отображаемых в данной группе
             //от индекса отнимается 1, т.к. в бинарном файле нумерация каналов в характеристике
             // групп идет с 1, 0 в той записи означает отсутствие канала
-            ArrayList<ChannelElement> channelsToView = new ArrayList<ChannelElement>();
+            List<ChannelElement> channelsToView = new ArrayList<ChannelElement>();
+			channelsToView.addAll(currentGroup.getChannelElements());
 
-            for (ChannelElement channelElement : currentGroup.getChannelElements()) {
-                    channelsToView.add(channelElement);
-            }
 
             //добавление каналов, которые надо отображать
             for (SensorElement sensorElement : currentGroup.getSensorElements()) {
@@ -106,18 +105,9 @@ public class ChannelViewActivity extends Activity implements OnClickListener {
 
             back = (ImageButton) view.findViewById(R.id.backBtnChannels);
             back.setOnClickListener(this);
-
-
-// Error: Activity com.noolite.ChannelViewActivity has leaked IntentReceiver receiver.UpdateReceiver@41c80e08 that was originally registered here. Are you missing a call to unregisterReceiver()?
-            updateReceiver = new UpdateReceiver();
-            this.registerReceiver(updateReceiver, new IntentFilter("update"));
-
-        } catch (ParseException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
-
-
-
 	}
 
 	//возвращение на главное Activity
@@ -147,8 +137,7 @@ public class ChannelViewActivity extends Activity implements OnClickListener {
 	//обновление списка, которое синхронизирует отображение с текущим состоянием каналов в случае одновременного
 	//управления с приложения и pebble
 	public static void updateList(){
-		ArrayList<Integer> channels = intent
-				.getIntegerArrayListExtra("channels");
+		ArrayList<Integer> channels = intent.getIntegerArrayListExtra("channels");
 		
 		ArrayList<Integer> sensors = intent.getIntegerArrayListExtra("sensors");
 		groupTitle = intent.getStringExtra("title");
@@ -168,7 +157,6 @@ public class ChannelViewActivity extends Activity implements OnClickListener {
 		int position = 1;
 		for (Integer i : sensors) {
 			if (i != 0) {
-//				channelsToView.add(new ChannelElement(position-1, "������ �" + position,
 				channelsToView.add(new ChannelElement(position - 1, "сенсор N" + position,
 						44, 0, 0));
 			}
@@ -183,10 +171,6 @@ public class ChannelViewActivity extends Activity implements OnClickListener {
 	protected void onDestroy() {
 		super.onDestroy();
 		DataSourceManager.getInstance().close();
-
-		if (updateReceiver != null) {
-			this.unregisterReceiver(updateReceiver);
-		}
 
 	}
 }

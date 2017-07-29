@@ -35,6 +35,8 @@ public class PingTask extends AsyncTask<String, Void, ResultType> {
 
             HttpURLConnection con = (HttpURLConnection) obj.openConnection();
             con.setRequestMethod("GET");
+            con.setConnectTimeout(4000);
+            con.setReadTimeout(4000);
             BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
             String inputLine;
             StringBuffer response = new StringBuffer();

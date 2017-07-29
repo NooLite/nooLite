@@ -15,7 +15,7 @@ import com.noolite.pebble.PebbleManager;
 import com.noolite.settings.SettingsValues;
 
 
-public class DataReceiver extends PebbleDataReceiver{
+public class DataReceiver extends PebbleDataReceiver {
 	
 	private final static UUID APP_UUID = UUID
 			.fromString("1151b807-682b-46c2-a945-1707516fce6f");
@@ -33,7 +33,7 @@ public class DataReceiver extends PebbleDataReceiver{
 		//происходит ее обработка
 		if(SettingsValues.isWatchesEnabled())
 		try {
-			pm.sendMessage(dict.getString(33));
+			pm.sendMessage(dict.getString(33), APP_UUID);
 		} catch (ParseException e) {
 			e.printStackTrace();
 		} catch (UnsupportedEncodingException e) {

@@ -98,14 +98,15 @@ public class SettingsMenu extends Activity implements OnClickListener, OnItemCli
 	
 	@Override
 	public void onBackPressed() {
-		SharedPreferences.Editor edit = MainActivity
-				.getSharedPref().edit();
-		edit.putBoolean("dialogShow", false);
-		edit.commit();
-		Intent intent = new Intent(this, MainActivity.class);
-		startActivity(intent);
-		finish();
 		super.onBackPressed();
+//		SharedPreferences.Editor edit = MainActivity
+//				.getSharedPref().edit();
+//		edit.putBoolean("dialogShow", false);
+//		edit.commit();
+//		Intent intent = new Intent(this, MainActivity.class);
+//		startActivity(intent);
+//		finish();
+
 	}
 	
 }

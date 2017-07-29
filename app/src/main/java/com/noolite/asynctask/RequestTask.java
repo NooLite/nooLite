@@ -69,8 +69,14 @@ public class RequestTask extends AsyncTask<String, Void, ResultType> {
 	//отправка запроса на шлюз по адресу url[0]
 	@Override
 	protected ResultType doInBackground(String... url) {
+        Log.d(TAG, url[0]);
+
+        if (url[0] == null || SettingsValues.getDemo()) {
+            return ResultType.SUCCESS_RESULT;
+        }
+
 		try{
-			Log.d(TAG, url[0]);
+
 			URL obj = new URL(url[0]);
 			
 			String username = SettingsValues.getUsername();
@@ -80,6 +86,8 @@ public class RequestTask extends AsyncTask<String, Void, ResultType> {
 			String encoding = Base64.encodeToString(data, Base64.DEFAULT);
 			HttpURLConnection con = (HttpURLConnection) obj.openConnection();
 			con.setRequestMethod("GET");
+			con.setConnectTimeout(4000);
+			con.setReadTimeout(4000);
 
 			if(SettingsValues.getAuth()) {
                 con.addRequestProperty("Authorization", "Basic " + encoding);

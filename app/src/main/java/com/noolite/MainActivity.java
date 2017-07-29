@@ -1,19 +1,16 @@
 package com.noolite;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ActionBar.LayoutParams;
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -42,7 +39,9 @@ import com.noolite.db.ds.GroupDataSource;
 import com.noolite.groups.GroupElement;
 import com.noolite.groups.SensorElement;
 import com.noolite.parsers.XMLParser;
+import com.noolite.pebble.NooDataReceiver;
 import com.noolite.pebble.PebbleManager;
+import com.noolite.pebble.ReceiverFactory;
 import com.noolite.settings.SettingsValues;
 
 import receiver.DataReceiver;
@@ -53,29 +52,16 @@ public class MainActivity extends Activity implements OnItemClickListener,
 
 	private ArrayList<GroupElement> groups = new ArrayList<GroupElement>(); //список отображаемых групп
 
-	private ImageButton settingsBtn, timerButton;
+	private ImageButton settingsBtn;
 	private ListView groupListView;
 
 	//объект, получающий доступ к настройкам приложения
 	private static SharedPreferences sharedPref;
 
-	//объект, работающий с pebble и ID приложения для pebble
-	private PebbleManager pm;
-
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-
 		setContentView(R.layout.activity_main);
-
-		//регистрация обработчика получения сообщений с pebble
-		if(pm==null){
-			pm = new PebbleManager(getApplicationContext());
-//            PebbleKit.registerReceivedDataHandler(this, new DataReceiver());
-// Compilation Error
-//			pm.registerReceivedDataHandler();
-		}
-
         Intent intent = new Intent("myAction");
 		sendBroadcast(intent);
 
@@ -88,8 +74,8 @@ public class MainActivity extends Activity implements OnItemClickListener,
 		//получение системных настроек приложения
 		sharedPref = this.getPreferences(Context.MODE_PRIVATE);
 		SettingsValues.setSound(sharedPref.getBoolean(getString(R.string.play_sound), true));
-		SettingsValues.setIP(sharedPref.getString("IP", "192.168.0.168"));
-//		SettingsValues.setIP(sharedPref.getString("IP", "192.168.0.168:8080"));
+//		SettingsValues.setIP(sharedPref.getString("IP", "192.168.0.168"));
+		SettingsValues.setIP(sharedPref.getString("IP", "192.168.0.168:8080"));
 		SettingsValues.setPassword(sharedPref.getString("password", ""));
 		SettingsValues.setUsername(sharedPref.getString("username", ""));
 		SettingsValues.setAuth(sharedPref.getBoolean("auth", true));
@@ -100,11 +86,7 @@ public class MainActivity extends Activity implements OnItemClickListener,
 		
 		groupListView = (ListView) findViewById(R.id.lvGroups);
 		GroupDataSource groupDS = DataSourceManager.getInstance().getGroupDS(getApplicationContext());
-        try {
-            groups = groupDS.getAll();
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
+        groups = groupDS.getAll();
 
         //проверка на необходимость показа демо-версии
 		//при необходимости БД инициализируется значениями для демо-режима
@@ -115,18 +97,12 @@ public class MainActivity extends Activity implements OnItemClickListener,
 				edit.putBoolean("dialogShow", false);
 				edit.commit();
 			}
+            groups = groupDS.getAll();
 
-			try {
-				groups = groupDS.getAll();
-
-				if (groups == null || groups.size() == 0) {
-                    createDemoData();
-					groups = groupDS.getAll();
-				}
-
-			} catch (ParseException e) {
-				e.printStackTrace();
-			}
+            if (groups == null || groups.size() == 0) {
+                createDemoData();
+                groups = groupDS.getAll();
+            }
 		} else {
 			SharedPreferences.Editor edit = MainActivity.getSharedPref().edit();
 			edit.putBoolean(NooLiteDefs.FLAG_DEMO, false);
@@ -171,6 +147,7 @@ public class MainActivity extends Activity implements OnItemClickListener,
             }
         });
 */
+        ReceiverFactory.getInstance().createAndRegisterReceiver(getApplicationContext());
 	}
 
 	//диалог-предупреждение о демо-режиме
@@ -185,8 +162,7 @@ public class MainActivity extends Activity implements OnItemClickListener,
 
         Button btnOk = (Button) view.findViewById(R.id.okDialogButton);
 		final Dialog alertDialog = adb.create();
-		alertDialog.getWindow().setBackgroundDrawableResource(
-				android.R.color.transparent);
+		alertDialog.getWindow().setBackgroundDrawableResource(android.R.color.transparent);
 
 		btnOk.setOnClickListener(new OnClickListener() {
 			@Override
@@ -279,15 +255,26 @@ public class MainActivity extends Activity implements OnItemClickListener,
 			break;
 		}
 	}
-	
+
+
+	@Override
+	protected void onResume() {
+		super.onResume();
+	}
+
 	@Override
 	protected void onPause() {
-        //Urix: added due to exception
         super.onPause();
-//		super.onDestroy();
 		SharedPreferences.Editor edit = MainActivity.getSharedPref().edit();
 		edit.putBoolean("dialogShow", true);
 		edit.commit();
+
+//        if (ReceiverFactory.getInstance().getReceiver() != null) {
+//            unregisterReceiver(ReceiverFactory.getInstance().getReceiver());
+//        }
+
+
+
 	}
 	
 	public static SharedPreferences getSharedPref(){

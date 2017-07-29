@@ -62,6 +62,8 @@ public class DownloadXMLTask extends AsyncTask<String, Void, Void> {
 
 		HttpURLConnection urlConnection = (HttpURLConnection) sensorUrl.openConnection();
 		urlConnection.setRequestMethod("GET");
+		urlConnection.setConnectTimeout(4000);
+		urlConnection.setReadTimeout(4000);
 		urlConnection.setDoOutput(true);
 		//добавление параметра авторизации в заголовок запроса, если это необходимо
 		if(SettingsValues.getAuth()) {

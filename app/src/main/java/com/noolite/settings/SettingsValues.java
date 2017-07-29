@@ -17,7 +17,6 @@ public class SettingsValues {
 	private static int downloads = 0;  //число скачиваний информации со шлюза
 	private static boolean isDemo = true;  //активен или неактивен демо-режим
 	private static boolean useWatches = true;  //включить или выключить работу с pebble
-	public static ArrayList<String> sensorValues = new ArrayList<String>();  //значения датчиков
     private static List<SensorData> sensorData = new ArrayList<SensorData>();  //значения датчиков
 	
 	public static void setUseWatches(boolean useW){
@@ -44,10 +43,6 @@ public class SettingsValues {
 		return needAuth;
 	}
 	
-	public static void setSensorValues(ArrayList<String> values){
-		sensorValues = values;
-	}
-
     public static synchronized void setSensorData(List<SensorData> values){
         sensorData.clear();
         sensorData.addAll(values);

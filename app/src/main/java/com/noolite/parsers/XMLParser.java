@@ -19,6 +19,7 @@ import android.util.Log;
 
 //парсер для XML с информацией о датчиках
 public class XMLParser {
+    private static String TAG = XMLParser.class.getSimpleName();
     public static final String TAG_T = "snst";
     public static final String TAG_H = "snsh";
     public static final String TAG_S = "snt";
@@ -33,8 +34,6 @@ public class XMLParser {
 			XmlPullParser xpp = factory.newPullParser();
             ByteArrayInputStream is = new ByteArrayInputStream(sensorData);
 			xpp.setInput(is, "cp1251");
-			ArrayList<String> sensorValues = new ArrayList<String>();
-
             List<SensorData> sensorDataList = new ArrayList<SensorData>();
             SensorData currentSensor = new SensorData();
             String currentTag = "";
@@ -58,10 +57,6 @@ public class XMLParser {
 				// ArrayList со значениями показателей датчика
                 else if (xpp.getEventType() == XmlPullParser.TEXT) {
 					String tmp = xpp.getText();
-					if((tmp.charAt(0)>='0' && tmp.charAt(0)<='9') || (tmp.charAt(0)=='-')){
-						sensorValues.add(tmp);
-						Log.d(NooLiteDefs.NOO_LOG, "    " + tmp);
-					}
 
                     if (currentTag.equals(TAG_T)) {
                         currentSensor.setAirTemperature(tmp);
@@ -80,7 +75,7 @@ public class XMLParser {
                             currentSensor.getAirHumidity() != null) {
                         currentSensor.setId(sensorDataList.size() + 1);
                         sensorDataList.add(currentSensor);
-                        Log.d(NooLiteDefs.NOO_LOG, currentSensor.toString());
+                        Log.d(TAG, currentSensor.toString());
                         currentSensor = new SensorData();
                     }
                     currentTag = "";
@@ -88,28 +83,15 @@ public class XMLParser {
 				xpp.next();
 			}
 			//передача полученных значений в класс, хранящий текущие настройки
-			SettingsValues.setSensorValues(sensorValues);
             SettingsValues.setSensorData(sensorDataList);
 
         } catch (XmlPullParserException e ) {
-            Log.e(NooLiteDefs.NOO_LOG, e.toString());
-            e.printStackTrace();
+            Log.e(TAG, "", e);
 
         } catch (IOException e) {
-            Log.e(NooLiteDefs.NOO_LOG, e.toString());
-            e.printStackTrace();
+            Log.e(TAG, "", e);
 
         }
 
 	}
-
-	//подготовка парсера
-//	public static XmlPullParser prepareXpp(InputStream in) throws XmlPullParserException {
-//		XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
-//		factory.setNamespaceAware(true);
-//		XmlPullParser xpp = factory.newPullParser();
-//		//настройка потока ввода
-//		xpp.setInput(in, "cp1251");
-//		return xpp;
-//	}
 }

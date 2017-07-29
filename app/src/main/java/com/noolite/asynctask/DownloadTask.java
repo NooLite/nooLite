@@ -111,8 +111,8 @@ public class DownloadTask extends AsyncTask<String, Void, ResultType> {
             if (SettingsValues.getAuth()) {
                 connection.addRequestProperty("Authorization", "Basic " + encoding);
             }
-            connection.setConnectTimeout(20000);
-            connection.setReadTimeout(20000);
+            connection.setConnectTimeout(4000);
+            connection.setReadTimeout(4000);
             connection.setRequestMethod("GET");
             connection.setDoOutput(true);
             connection.connect();

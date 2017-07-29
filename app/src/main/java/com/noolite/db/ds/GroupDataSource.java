@@ -55,7 +55,7 @@ public class GroupDataSource extends BasicDataSource {
 
     }
 
-    public GroupElement get(int id) throws ParseException {
+    public GroupElement get(int id) {
         GroupElement groupElement = new GroupElement();
 
         String sqlQuery = "SELECT gr.id, gr.name, gr.visible "
@@ -111,7 +111,7 @@ public class GroupDataSource extends BasicDataSource {
     }
 
     //чтение всех записей из БД
-    public ArrayList<GroupElement> getAll() throws ParseException {
+    public ArrayList<GroupElement> getAll() {
         ArrayList<GroupElement> groupList = new ArrayList<GroupElement>();
         String sqlQuery = "SELECT gr.id, gr.name, gr.visible "
                 + "FROM " + TABLE_GROUP + " as gr "
