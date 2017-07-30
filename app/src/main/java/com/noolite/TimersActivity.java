@@ -14,7 +14,7 @@ import android.widget.TextView;
 import com.noolite.adapters.TimerListAdapter;
 import com.noolite.db.ds.DataSourceManager;
 import com.noolite.db.ds.TimerDataSource;
-import com.noolite.timers.TimerElement;
+import com.noolite.domain.TimerElement;
 
 import java.text.ParseException;
 import java.util.ArrayList;

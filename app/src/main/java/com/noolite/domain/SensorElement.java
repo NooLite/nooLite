@@ -1,4 +1,4 @@
-package com.noolite.groups;
+package com.noolite.domain;
 
 /**
  * Created by urix on 7/10/2017.

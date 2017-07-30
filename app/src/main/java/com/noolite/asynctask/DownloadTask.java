@@ -8,25 +8,19 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 import com.noolite.AppException;
-import com.noolite.NooDialogUtils;
+import com.noolite.util.NooDialogUtils;
 import com.noolite.ResultType;
 import com.noolite.MainActivity;
 import com.noolite.NooLiteDefs;
-import com.noolite.R;
 import com.noolite.parsers.BinParser;
-import com.noolite.settings.SettingsValues;
+import com.noolite.SettingsValues;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.util.Base64;
 import android.util.Log;
-import android.view.View;
-import android.widget.Button;
-import android.widget.TextView;
 
 public class DownloadTask extends AsyncTask<String, Void, ResultType> {
     private ProgressDialog dialog;

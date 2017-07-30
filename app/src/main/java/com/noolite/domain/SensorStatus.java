@@ -1,4 +1,4 @@
-package com.noolite.groups;
+package com.noolite.domain;
 
 import java.util.HashMap;
 import java.util.Map;

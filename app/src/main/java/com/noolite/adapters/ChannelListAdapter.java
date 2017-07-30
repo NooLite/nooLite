@@ -26,15 +26,15 @@ import android.widget.TextView;
 
 import com.noolite.NooLiteDefs;
 import com.noolite.R;
-import com.noolite.SensorUtils;
-import com.noolite.UrlUtils;
+import com.noolite.util.SensorUtils;
+import com.noolite.util.UrlUtils;
 import com.noolite.asynctask.RequestTask;
 import com.noolite.domain.ChannelElement;
 import com.noolite.db.ds.ChannelsDataSource;
 import com.noolite.db.ds.DataSourceManager;
-import com.noolite.groups.SensorData;
-import com.noolite.groups.SensorStatus;
-import com.noolite.settings.SettingsValues;
+import com.noolite.domain.SensorData;
+import com.noolite.domain.SensorStatus;
+import com.noolite.SettingsValues;
 
 //адаптер для конфигурации UI списка каналов
 public class ChannelListAdapter extends BaseAdapter implements

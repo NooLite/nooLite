@@ -18,9 +18,9 @@ import com.noolite.db.ds.ChannelsDataSource;
 import com.noolite.db.ds.DataSourceManager;
 import com.noolite.db.ds.GroupDataSource;
 import com.noolite.db.ds.TimerDataSource;
-import com.noolite.groups.GroupElement;
-import com.noolite.groups.SensorElement;
-import com.noolite.timers.TimerElement;
+import com.noolite.domain.GroupElement;
+import com.noolite.domain.SensorElement;
+import com.noolite.domain.TimerElement;
 
 public class BinParser {
 	// значения сдвигов, числа считываемых элементов в соответствии с бинарным файлом

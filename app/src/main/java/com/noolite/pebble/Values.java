@@ -2,8 +2,8 @@ package com.noolite.pebble;
 
 import com.noolite.NooLiteDefs;
 import com.noolite.domain.ChannelElement;
-import com.noolite.groups.GroupElement;
-import com.noolite.groups.SensorElement;
+import com.noolite.domain.GroupElement;
+import com.noolite.domain.SensorElement;
 
 import java.util.ArrayList;
 import java.util.List;

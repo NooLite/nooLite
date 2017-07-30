@@ -9,14 +9,14 @@ import android.content.Context;
 import com.getpebble.android.kit.PebbleKit;
 import com.getpebble.android.kit.util.PebbleDictionary;
 import com.noolite.NooLiteDefs;
-import com.noolite.SensorUtils;
-import com.noolite.UrlUtils;
+import com.noolite.util.SensorUtils;
+import com.noolite.util.UrlUtils;
 import com.noolite.asynctask.RequestTask;
 import com.noolite.domain.ChannelElement;
 import com.noolite.db.ds.ChannelsDataSource;
 import com.noolite.db.ds.DataSourceManager;
 import com.noolite.db.ds.GroupDataSource;
-import com.noolite.groups.GroupElement;
+import com.noolite.domain.GroupElement;
 
 public class PebbleManager {
 	// ключи для словаря

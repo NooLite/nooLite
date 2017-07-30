@@ -1,10 +1,11 @@
-package com.noolite;
+package com.noolite.util;
 
 import android.content.Context;
 import android.util.Log;
 
+import com.noolite.ResultType;
+import com.noolite.SettingsValues;
 import com.noolite.asynctask.PingTask;
-import com.noolite.settings.SettingsValues;
 
 import java.util.concurrent.ExecutionException;
 

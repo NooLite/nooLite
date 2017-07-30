@@ -2,7 +2,6 @@ package com.noolite.parsers;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,11 +9,9 @@ import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
 
-import com.noolite.NooLiteDefs;
-import com.noolite.groups.SensorData;
-import com.noolite.settings.SettingsValues;
+import com.noolite.domain.SensorData;
+import com.noolite.SettingsValues;
 
-import android.content.Context;
 import android.util.Log;
 
 //парсер для XML с информацией о датчиках

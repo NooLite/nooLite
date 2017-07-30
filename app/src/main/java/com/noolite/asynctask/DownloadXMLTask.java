@@ -1,27 +1,16 @@
 package com.noolite.asynctask;
 
 import java.io.BufferedInputStream;
-import java.io.DataInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
 
 import com.noolite.NooLiteDefs;
-import com.noolite.parsers.BinParser;
 import com.noolite.parsers.XMLParser;
-import com.noolite.settings.SettingsValues;
+import com.noolite.SettingsValues;
 
 import android.os.AsyncTask;
-import android.os.Environment;
 import android.util.Base64;
 import android.util.Log;
 

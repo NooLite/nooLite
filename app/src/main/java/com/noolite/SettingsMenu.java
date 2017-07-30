@@ -18,8 +18,7 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 
 import com.noolite.adapters.CustomListAdapter;
-import com.noolite.groups.GroupElement;
-import com.noolite.groups.SensorElement;
+import com.noolite.domain.GroupElement;
 
 //Меню настроек, где доступен выбор - общие настройки приложения или настройки работы с pebble
 public class SettingsMenu extends Activity implements OnClickListener, OnItemClickListener{

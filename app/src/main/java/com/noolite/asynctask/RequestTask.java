@@ -2,21 +2,15 @@ package com.noolite.asynctask;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
-import java.lang.ref.WeakReference;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
-import com.noolite.MainActivity;
-import com.noolite.NooDialogUtils;
-import com.noolite.NooLiteDefs;
+import com.noolite.util.NooDialogUtils;
 import com.noolite.ResultType;
-import com.noolite.SettingsActivity;
-import com.noolite.settings.SettingsValues;
+import com.noolite.SettingsValues;
 
-import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.AsyncTask;
 import android.util.Base64;
 import android.util.Log;

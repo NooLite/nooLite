@@ -1,7 +1,5 @@
 package com.noolite;
 
-import java.util.ArrayList;
-
 import android.app.ActionBar;
 import android.app.ActionBar.LayoutParams;
 import android.app.Activity;
@@ -17,8 +15,6 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.getpebble.android.kit.PebbleKit;
-import com.noolite.pebble.PebbleManager;
-import com.noolite.settings.SettingsValues;
 
 
 //Activity настроек работы с pebble

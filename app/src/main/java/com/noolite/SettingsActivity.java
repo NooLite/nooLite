@@ -20,7 +20,7 @@ import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.noolite.asynctask.DownloadTask;
-import com.noolite.settings.SettingsValues;
+import com.noolite.util.UrlUtils;
 
 //настройки приложения
 public class SettingsActivity extends Activity implements OnClickListener {

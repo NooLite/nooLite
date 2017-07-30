@@ -31,10 +31,10 @@ import com.noolite.db.ds.BasicDataSource;
 import com.noolite.db.ds.ChannelsDataSource;
 import com.noolite.db.ds.DataSourceManager;
 import com.noolite.db.ds.GroupDataSource;
-import com.noolite.groups.GroupElement;
-import com.noolite.groups.SensorElement;
+import com.noolite.domain.GroupElement;
+import com.noolite.domain.SensorElement;
 import com.noolite.pebble.ReceiverFactory;
-import com.noolite.settings.SettingsValues;
+import com.noolite.util.UrlUtils;
 
 //начальное Activity приложения
 public class MainActivity extends Activity implements OnItemClickListener,

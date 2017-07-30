@@ -6,13 +6,12 @@ import java.util.UUID;
 
 import android.content.Context;
 import android.content.Intent;
-import android.widget.Toast;
 
 import com.getpebble.android.kit.PebbleKit;
 import com.getpebble.android.kit.PebbleKit.PebbleDataReceiver;
 import com.getpebble.android.kit.util.PebbleDictionary;
 import com.noolite.pebble.PebbleManager;
-import com.noolite.settings.SettingsValues;
+import com.noolite.SettingsValues;
 
 
 public class DataReceiver extends PebbleDataReceiver {

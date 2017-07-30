@@ -1,4 +1,4 @@
-package com.noolite.timers;
+package com.noolite.domain;
 
 //класс для хранения информации о таймере
 public class TimerElement {

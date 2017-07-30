@@ -1,6 +1,7 @@
-package com.noolite.groups;
+package com.noolite.domain;
 
 import com.noolite.domain.ChannelElement;
+import com.noolite.domain.SensorElement;
 
 import java.util.ArrayList;
 import java.util.List;

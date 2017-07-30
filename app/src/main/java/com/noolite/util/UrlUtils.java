@@ -1,6 +1,7 @@
-package com.noolite;
+package com.noolite.util;
 
-import com.noolite.settings.SettingsValues;
+import com.noolite.NooLiteDefs;
+import com.noolite.SettingsValues;
 
 /**
  * Created by urix on 7/19/2017.

@@ -1,6 +1,6 @@
-package com.noolite.settings;
+package com.noolite;
 
-import com.noolite.groups.SensorData;
+import com.noolite.domain.SensorData;
 
 import java.util.ArrayList;
 import java.util.List;

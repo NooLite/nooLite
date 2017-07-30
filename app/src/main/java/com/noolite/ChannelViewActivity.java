@@ -24,8 +24,8 @@ import com.noolite.db.ds.BasicDataSource;
 import com.noolite.db.ds.ChannelsDataSource;
 import com.noolite.db.ds.DataSourceManager;
 import com.noolite.db.ds.GroupDataSource;
-import com.noolite.groups.GroupElement;
-import com.noolite.groups.SensorElement;
+import com.noolite.domain.GroupElement;
+import com.noolite.domain.SensorElement;
 
 /**
  * Activity для отображения списка каналов выбранной группы.

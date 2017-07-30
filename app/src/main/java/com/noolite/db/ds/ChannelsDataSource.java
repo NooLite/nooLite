@@ -4,7 +4,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 
 import com.noolite.domain.ChannelElement;
-import com.noolite.groups.GroupElement;
+import com.noolite.domain.GroupElement;
 
 import java.util.ArrayList;
 

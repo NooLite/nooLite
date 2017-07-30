@@ -3,7 +3,7 @@ package com.noolite.db.ds;
 import android.content.ContentValues;
 import android.database.Cursor;
 
-import com.noolite.timers.TimerElement;
+import com.noolite.domain.TimerElement;
 
 import java.text.ParseException;
 import java.util.ArrayList;

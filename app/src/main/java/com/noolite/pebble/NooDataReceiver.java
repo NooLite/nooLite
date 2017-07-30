@@ -5,7 +5,7 @@ import android.util.Log;
 
 import com.getpebble.android.kit.PebbleKit;
 import com.getpebble.android.kit.util.PebbleDictionary;
-import com.noolite.settings.SettingsValues;
+import com.noolite.SettingsValues;
 
 import java.util.UUID;
 

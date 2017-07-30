@@ -1,7 +1,7 @@
-package com.noolite;
+package com.noolite.util;
 
-import com.noolite.groups.SensorData;
-import com.noolite.settings.SettingsValues;
+import com.noolite.SettingsValues;
+import com.noolite.domain.SensorData;
 
 import java.util.List;
 

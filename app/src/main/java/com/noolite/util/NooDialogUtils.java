@@ -1,4 +1,4 @@
-package com.noolite;
+package com.noolite.util;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -8,6 +8,8 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+
+import com.noolite.R;
 
 /**
  * Created by urix on 7/23/2017.
