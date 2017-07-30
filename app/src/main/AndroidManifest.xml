@@ -35,19 +35,24 @@
         <activity android:name="com.noolite.TimerInfoActivity"></activity>
  -->
         <activity android:name="com.noolite.SettingsActivity"></activity>
-        <receiver android:name="receiver.DataReceiver">
-            <intent-filter>
-                <action android:name="myAction"/>
-            </intent-filter>
-        </receiver>
-        <activity android:name="com.noolite.PebbleSettings"></activity>
-        <activity android:name="com.noolite.SettingsMenu"></activity>
-        <activity android:name="AboutActivity"></activity>
-        <receiver android:name="receiver.UpdateReceiver">
-            <intent-filter>
-                <action android:name="update"/>
-            </intent-filter>
-        </receiver>
+ <!--
+           <receiver android:name="receiver.DataReceiver">
+               <intent-filter>
+                   <action android:name="myAction"/>
+               </intent-filter>
+           </receiver>
+ -->
+
+       <activity android:name="com.noolite.PebbleSettings"></activity>
+       <activity android:name="com.noolite.SettingsMenu"></activity>
+       <activity android:name="AboutActivity"></activity>
+<!--
+             <receiver android:name="receiver.UpdateReceiver">
+                 <intent-filter>
+                     <action android:name="update"/>
+                 </intent-filter>
+             </receiver>
+ -->
     </application>
 
-</manifest>
+ </manifest>

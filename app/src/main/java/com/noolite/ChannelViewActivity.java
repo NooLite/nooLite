@@ -39,7 +39,6 @@ public class ChannelViewActivity extends Activity implements OnClickListener {
 	private static String groupTitle = new String();
 	private ActionBar actionBar;
 	private View view;
-	private static Context context;
     //Intent, который вызывал открытие этого Activity и в котором передавались данные
 	private static Intent intent;
 //	private UpdateReceiver updateReceiver;
@@ -51,7 +50,6 @@ public class ChannelViewActivity extends Activity implements OnClickListener {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_channels);
 
-		context = getApplicationContext();
 		//получение вызывавшего Intent
         intent = getIntent();
         int groupId = (int) intent.getLongExtra(BasicDataSource.GROUP_ID, 0);
@@ -66,12 +64,8 @@ public class ChannelViewActivity extends Activity implements OnClickListener {
             allChannels = chds.getAll();
 
             //выбор каналов, отображаемых в данной группе
-            //от индекса отнимается 1, т.к. в бинарном файле нумерация каналов в характеристике
-            // групп идет с 1, 0 в той записи означает отсутствие канала
             List<ChannelElement> channelsToView = new ArrayList<ChannelElement>();
 			channelsToView.addAll(currentGroup.getChannelElements());
-
-
             //добавление каналов, которые надо отображать
             for (SensorElement sensorElement : currentGroup.getSensorElements()) {
                 channelsToView.add(
@@ -128,39 +122,6 @@ public class ChannelViewActivity extends Activity implements OnClickListener {
 		startActivity(intent);
 		finish();
 		super.onBackPressed();
-	}
-
-	//обновление списка, которое синхронизирует отображение с текущим состоянием каналов в случае одновременного
-	//управления с приложения и pebble
-	public static void updateList(){
-		ArrayList<Integer> channels = intent.getIntegerArrayListExtra("channels");
-		
-		ArrayList<Integer> sensors = intent.getIntegerArrayListExtra("sensors");
-		groupTitle = intent.getStringExtra("title");
-
-		ChannelsDataSource chds = DataSourceManager.getInstance().getChannelsDS(context);
-        allChannels = chds.getAll();
-
-
-		ArrayList<ChannelElement> channelsToView = new ArrayList<ChannelElement>();
-		for (Integer i : channels) {
-			if (i != 0) {
-				Log.d("noolite", String.valueOf(i));
-				channelsToView.add(allChannels.get(i - 1));
-			}
-		}
-		
-		int position = 1;
-		for (Integer i : sensors) {
-			if (i != 0) {
-				channelsToView.add(new ChannelElement(position - 1, "сенсор N" + position,
-						44, 0, 0));
-			}
-			position++;
-		}
-
-		customAdapter = new ChannelListAdapter(context,	channelsToView);
-		channelListView.setAdapter(customAdapter);
 	}
 
 	@Override
