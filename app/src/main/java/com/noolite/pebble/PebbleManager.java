@@ -12,7 +12,7 @@ import com.noolite.NooLiteDefs;
 import com.noolite.SensorUtils;
 import com.noolite.UrlUtils;
 import com.noolite.asynctask.RequestTask;
-import com.noolite.channels.ChannelElement;
+import com.noolite.domain.ChannelElement;
 import com.noolite.db.ds.ChannelsDataSource;
 import com.noolite.db.ds.DataSourceManager;
 import com.noolite.db.ds.GroupDataSource;
@@ -160,12 +160,12 @@ public class PebbleManager {
         ChannelElement ch = Values.nextChannel();
         //проверка  того, показывать канал или датчик
         if (ch.getType() == NooLiteDefs.CHANNEL_TYPE_SENSOR) {
+//            data.addString(CHANNEL_NAME_KEY,ch.getName());
             //добавление информации о датчике
             data.addInt32(CHANNEL_TYPE_KEY, ch.getType());
             //список текущих значений показаний датчиков
             String sensorValue = SensorUtils.getSensorValue(ch.getId());
             data.addString(SENSOR_KEY, sensorValue);
-            data.addString(CHANNEL_NAME_KEY,ch.getName());
 
         } else {
             //добавление информации о имени группы

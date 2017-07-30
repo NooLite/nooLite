@@ -1,8 +1,6 @@
 package com.noolite.adapters;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
@@ -11,7 +9,6 @@ import android.graphics.PorterDuff.Mode;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -28,14 +25,11 @@ import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 
 import com.noolite.NooLiteDefs;
-import com.noolite.PingUtil;
 import com.noolite.R;
-import com.noolite.ResultType;
 import com.noolite.SensorUtils;
 import com.noolite.UrlUtils;
-import com.noolite.asynctask.RequestInterface;
 import com.noolite.asynctask.RequestTask;
-import com.noolite.channels.ChannelElement;
+import com.noolite.domain.ChannelElement;
 import com.noolite.db.ds.ChannelsDataSource;
 import com.noolite.db.ds.DataSourceManager;
 import com.noolite.groups.SensorData;

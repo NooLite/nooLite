@@ -13,7 +13,7 @@ import android.util.Log;
 import com.noolite.AppException;
 import com.noolite.ResultType;
 import com.noolite.NooLiteDefs;
-import com.noolite.channels.ChannelElement;
+import com.noolite.domain.ChannelElement;
 import com.noolite.db.ds.ChannelsDataSource;
 import com.noolite.db.ds.DataSourceManager;
 import com.noolite.db.ds.GroupDataSource;

@@ -11,7 +11,6 @@ public class NooGroup {
 
     private int id;  //id группы
     private String name; //имя группы
-    private List<Integer> channels; //список индексов каналов, входящих в группу
     private List<NooChannel> channelElements; //список индексов каналов, входящих в группу
     private List<NooChannel> sensorElements; //список индексов датчиков, входящих в группу
     private boolean visibility; //видимость группы в приложении
@@ -40,16 +39,6 @@ public class NooGroup {
         this.name = name;
     }
 
-    public List<Integer> getChannels() {
-        if (channels == null) {
-            channels = new ArrayList<Integer>(8);
-        }
-        return channels;
-    }
-
-    public void setChannels(List<Integer> channels) {
-        this.channels = channels;
-    }
 
     public List<NooChannel> getSensorElements() {
         if (sensorElements == null) {

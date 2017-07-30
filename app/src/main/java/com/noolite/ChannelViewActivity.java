@@ -1,17 +1,13 @@
 package com.noolite;
 
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
-
-import receiver.UpdateReceiver;
 
 import android.app.ActionBar;
 import android.app.ActionBar.LayoutParams;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
@@ -23,7 +19,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.noolite.adapters.ChannelListAdapter;
-import com.noolite.channels.ChannelElement;
+import com.noolite.domain.ChannelElement;
 import com.noolite.db.ds.BasicDataSource;
 import com.noolite.db.ds.ChannelsDataSource;
 import com.noolite.db.ds.DataSourceManager;

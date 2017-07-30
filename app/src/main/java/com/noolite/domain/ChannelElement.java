@@ -1,4 +1,4 @@
-package com.noolite.channels;
+package com.noolite.domain;
 
 
 //класс для хранения информации о каналах

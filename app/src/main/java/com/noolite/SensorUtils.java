@@ -30,7 +30,9 @@ public class SensorUtils {
 
         if (currentSensor != null) {
             sb.append(currentSensor.getAirTemperature() + " \u00B0C").append(" ");
-            sb.append(currentSensor.getAirHumidity() + " % RH");
+            sb.append(currentSensor.getAirHumidity() + " %RH ");
+//            sb.append(currentSensor.getAirTemperature()).append(" ");
+//            sb.append(currentSensor.getAirHumidity());
 
             //отображение типа возникшей ошибки
             if (currentSensor.getStatus() != null) {
@@ -38,7 +40,7 @@ public class SensorUtils {
             }
         } else {
             sb.append("- \u00B0C").append(" ");
-            sb.append("- % RH");
+            sb.append("- %RH");
         }
         return sb.toString();
     }

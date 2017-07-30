@@ -1,6 +1,6 @@
 package com.noolite.groups;
 
-import com.noolite.channels.ChannelElement;
+import com.noolite.domain.ChannelElement;
 
 import java.util.ArrayList;
 import java.util.List;

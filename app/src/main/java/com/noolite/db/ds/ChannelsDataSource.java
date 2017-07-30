@@ -3,10 +3,9 @@ package com.noolite.db.ds;
 import android.content.ContentValues;
 import android.database.Cursor;
 
-import com.noolite.channels.ChannelElement;
+import com.noolite.domain.ChannelElement;
 import com.noolite.groups.GroupElement;
 
-import java.text.ParseException;
 import java.util.ArrayList;
 
 /**

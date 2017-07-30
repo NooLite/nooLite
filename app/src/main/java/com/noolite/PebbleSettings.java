@@ -16,6 +16,7 @@ import android.view.View.OnClickListener;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import com.getpebble.android.kit.PebbleKit;
 import com.noolite.pebble.PebbleManager;
 import com.noolite.settings.SettingsValues;
 
@@ -49,14 +50,12 @@ public class PebbleSettings extends Activity{
 		pebbleEnabled = (ImageButton) findViewById(R.id.pebbleEnabledSwitch);
 		if(SettingsValues.isWatchesEnabled()){
 			pebbleEnabled.setImageResource(R.drawable.selected);
-			SharedPreferences.Editor edit = MainActivity.getSharedPref()
-					.edit();
+			SharedPreferences.Editor edit = MainActivity.getSharedPref().edit();
 			edit.putBoolean("watches", true);
 			edit.commit();
 		}else{
 			pebbleEnabled.setImageResource(R.drawable.unselected);
-			SharedPreferences.Editor edit = MainActivity.getSharedPref()
-					.edit();
+			SharedPreferences.Editor edit = MainActivity.getSharedPref().edit();
 			edit.putBoolean("watches", false);
 			edit.commit();
 		}
@@ -76,8 +75,7 @@ public class PebbleSettings extends Activity{
 					edit.commit();
 				}else{
 					pebbleEnabled.setImageResource(R.drawable.selected);
-					SharedPreferences.Editor edit = MainActivity.getSharedPref()
-							.edit();
+					SharedPreferences.Editor edit = MainActivity.getSharedPref().edit();
 					SettingsValues.setUseWatches(true);
 					edit.putBoolean("watches", true);
 					edit.commit();
@@ -107,8 +105,7 @@ public class PebbleSettings extends Activity{
 
 		//отображение текущего состояния соединения с pebble
 		connectionStatus = (TextView) findViewById(R.id.connectionStatus);
-		PebbleManager pm = new PebbleManager(getApplicationContext());
-		if(pm.isConnected()){
+		if(PebbleKit.isWatchConnected(getApplicationContext())){
 			connectionStatus.setText("Подключено");
 		}else{
 			connectionStatus.setText("Не подключено");

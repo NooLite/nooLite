@@ -3,14 +3,12 @@ package com.noolite;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import android.app.ActionBar;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ActionBar.LayoutParams;
 import android.app.Activity;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -23,28 +21,20 @@ import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.Button;
 import android.widget.ImageButton;
-import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.getpebble.android.kit.PebbleKit;
 import com.noolite.adapters.CustomListAdapter;
-import com.noolite.asynctask.DownloadInterface;
 import com.noolite.asynctask.DownloadXMLTask;
-import com.noolite.channels.ChannelElement;
+import com.noolite.domain.ChannelElement;
 import com.noolite.db.ds.BasicDataSource;
 import com.noolite.db.ds.ChannelsDataSource;
 import com.noolite.db.ds.DataSourceManager;
 import com.noolite.db.ds.GroupDataSource;
 import com.noolite.groups.GroupElement;
 import com.noolite.groups.SensorElement;
-import com.noolite.parsers.XMLParser;
-import com.noolite.pebble.NooDataReceiver;
-import com.noolite.pebble.PebbleManager;
 import com.noolite.pebble.ReceiverFactory;
 import com.noolite.settings.SettingsValues;
-
-import receiver.DataReceiver;
 
 //начальное Activity приложения
 public class MainActivity extends Activity implements OnItemClickListener,

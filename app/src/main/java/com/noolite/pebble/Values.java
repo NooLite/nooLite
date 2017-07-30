@@ -1,7 +1,7 @@
 package com.noolite.pebble;
 
 import com.noolite.NooLiteDefs;
-import com.noolite.channels.ChannelElement;
+import com.noolite.domain.ChannelElement;
 import com.noolite.groups.GroupElement;
 import com.noolite.groups.SensorElement;
 
