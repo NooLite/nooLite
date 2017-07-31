@@ -9,6 +9,7 @@ import android.content.Context;
 import com.getpebble.android.kit.PebbleKit;
 import com.getpebble.android.kit.util.PebbleDictionary;
 import com.noolite.NooLiteDefs;
+import com.noolite.domain.SensorData;
 import com.noolite.util.SensorUtils;
 import com.noolite.util.UrlUtils;
 import com.noolite.asynctask.RequestTask;
@@ -148,24 +149,22 @@ public class PebbleManager {
 
         if (ch.getType() == NooLiteDefs.CHANNEL_TYPE_SENSOR) {
             String sensorValue = SensorUtils.getSensorValue(ch.getId());
-            data.addString(SENSOR_KEY, sensorValue);
+            data.addString(SENSOR_KEY, ch.getName() + ": " + sensorValue);
         }
         return data;
     }
 
     private PebbleDictionary processChannelInfo() {
         PebbleDictionary data = new PebbleDictionary();
-
         //команда получения информации о следующем канале в группе
         ChannelElement ch = Values.nextChannel();
         //проверка  того, показывать канал или датчик
         if (ch.getType() == NooLiteDefs.CHANNEL_TYPE_SENSOR) {
-//            data.addString(CHANNEL_NAME_KEY,ch.getName());
             //добавление информации о датчике
             data.addInt32(CHANNEL_TYPE_KEY, ch.getType());
             //список текущих значений показаний датчиков
             String sensorValue = SensorUtils.getSensorValue(ch.getId());
-            data.addString(SENSOR_KEY, sensorValue);
+            data.addString(SENSOR_KEY, ch.getName() + ": " + sensorValue);
 
         } else {
             //добавление информации о имени группы
